@@ -25,7 +25,7 @@ from sqlalchemy.orm import (
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from confapp.lib.declenum import DeclEnum
+from confapp.libs.declenum import DeclEnum
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
