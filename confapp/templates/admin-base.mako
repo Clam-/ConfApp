@@ -1,11 +1,11 @@
 <%!
-from personreg.models import (
+from confapp.models import (
 	DayType,
 	HandoutType,
 	PersonType,
 	)
-%>
-<%def name="selectclslist(name, attr, cls, _class=None, _id=None)">
+%>\
+<%def name="selectclslist(name, attr, cls, _class=None, _id=None)">\
 % if _class:
 <select class="${_class}" name="${name}" id="${_id}">\
 % else:
@@ -19,15 +19,15 @@ from personreg.models import (
 %	endif
 % endfor
 </select>\
-</%def>
-<%def name="selectidlist(name, items, attr, default='')">
+</%def>\
+<%def name="selectidlist(name, items, attr, default='')">\
 <select name="${name}">\
 <option value="" selected="selected">(${default})</option>\
 % for item in items:
 <option value="${item.id}">${getattr(item, attr)}</option>\
 % endfor
 </select>\
-</%def>
+</%def>\
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html 
 	PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -103,7 +103,6 @@ from personreg.models import (
 			padding-left: 40px;
 		}
 		
-		
 		td.userodd { background-color:#DCD9FF;}
 		td.usereven { background-color:#F3F2FF;}
 		td.userselect { background-color:#FEF2FF;}
@@ -114,7 +113,7 @@ from personreg.models import (
 		
 		td.markercolor { background-color: #FFF5BF;}
 		
-		td.spacer { padding:0; background-color:#888888; }
+		.table-header { font-weight:bold; }
 		
 		a.linkcell { height:100%;display:block; padding:0;}
 		
@@ -122,21 +121,22 @@ from personreg.models import (
 
 		.table td.table-cell-bad-even { background-color:#FFD4E9; }
 		.table td.table-cell-bad-odd { background-color:#FFE4F9; }
-		.table td.code { width: 4em; }
-		
-		.table-header { font-weight:bold; padding:0.5em 0.5em 0.5em 0.5em; }
-		th { padding:0.5em 0.5em 0.5em 0.5em; }
+		.table td.code { border-left: 2px solid #7570FF; }
 		
 		.table { display: table; margin-left: 0em; padding-left: 0px; }
-		a:link {color:#0066FF;}      /* unvisited link */
-		a:visited {color:#0066FF;}  /* visited link */
+		/*a:link {color:#0066FF;} */     /* unvisited link */
+		/*a:visited {color:#0066FF;}*/  /* visited link */
 		a:hover {color:#4DAFFF;}  /* mouse over link */
 		a:active {color:#135C1D;}  /* selected link */
 	</style>
 	
 	<!-- Bootstrap -->
 	<link href="http://nyanya.org/regbutt/res/css/bootstrap.min.css" rel="stylesheet" />
-
+	<!-- Override -->
+	<style type="text/css">
+		.table>thead>tr>th {padding:0.3em 0.3em 0.3em 0.3em;}
+		.table>tbody>tr>td {padding:0.3em 0.3em 0.3em 0.3em;}
+	</style>
 	<script type="text/javascript" src="http://nyanya.org/regbutt/jquery-2.0.0.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script type="text/javascript" src="http://nyanya.org/regbutt/res/js/bootstrap.min.js"></script>
@@ -170,12 +170,26 @@ function() {
 			$( this ).parent().children("td.marker").toggleClass( "userselect" );
 		}
 	);
+
+	function get_updates () {
+        $('#sidebar table').load("/helperupdate/");
+    }
+
+    $('#sidebar a').click(function () {
+        get_updates();
+    });
+
+    get_updates();
 });
+
+function helper_returned(url) {
+	$('#sidebar table').load(url);
+}
 	</script>
 </head> 
 <body> 
 	<ol id="wrapper">
-		<li id="header"> <h1>Registrations</h1> </li>
+		<li id="header"> <h2>Presenter Check-in</h2> </li>
 		<li id="menu">
 			<ol id="menu_items">
 % for type in DayType:

@@ -1,5 +1,5 @@
 <%!
-from personreg.models import (
+from confapp.models import (
 	DayType,
 	HandoutType,
 	PersonType,
@@ -135,11 +135,11 @@ from personreg.models import (
 	</style>
 	
 	<!-- Bootstrap -->
-	<link href="http://nyanya.org/regbutt/res/css/bootstrap.min.css" rel="stylesheet" media="all" />
+	<link href="/files/css/bootstrap.min.css" rel="stylesheet" media="all" />
 
-	<script type="text/javascript" src="http://nyanya.org/regbutt/jquery-2.0.0.min.js"></script>
+	<script type="text/javascript" src="/files/js/jquery-2.0.0.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script type="text/javascript" src="http://nyanya.org/regbutt/res/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/files/js/bootstrap.min.js"></script>
 	
 	<style media="all">
 @media print {

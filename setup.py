@@ -9,15 +9,16 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = [
-    'pyramid',
-    'pyramid_chameleon',
-    'pyramid_debugtoolbar',
-    'pyramid_tm',
-    'SQLAlchemy',
-    'transaction',
-    'zope.sqlalchemy',
-    'waitress',
-    ]
+	'pyramid',
+	'pyramid_mako',
+	'pyramid_debugtoolbar',
+	'pyramid_tm',
+	'SQLAlchemy',
+	'transaction',
+	'zope.sqlalchemy',
+	'waitress',
+	'webhelpers',
+	]
 
 setup(name='ConfApp',
       version='0.0',

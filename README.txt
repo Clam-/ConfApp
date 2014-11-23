@@ -14,3 +14,9 @@ Getting Started
 
 - $VENV/bin/pserve development.ini
 
+Note to self
+------------
+git fetch --all
+git reset --hard origin/master
+
+to sync remote copies back to original

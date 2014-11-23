@@ -1,8 +1,10 @@
 <%inherit file="admin-base.mako"/>
-<div class="maxbig">
-	<h2>Registrations for ${section.description}</h2>
+<div class="maxbig container-fluid">
+<div class="col-sm-10">
+<% day = section.description %>
+	<h2>Registrations for ${day}</h2>
 
-	<form class="form-inline" action="${request.route_url("admin_day_list", day=section.description)}" method="post">
+	<form class="form-inline" action="${request.route_url("admin_day_list", day=day)}" method="post">
 		<div class="form-group">
 			<label class="sr-only control-label" for="formName">Search name:</label>
 			<input class="form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name"/>
@@ -20,12 +22,10 @@
 				<th> Last name </th>
 				<th> First name </th>
 				<th> Type </th>
-				<th class="spacer"></th>
-				<th> Code </th>
+				<th class="code"> Code </th>
 				<th> Session title </th>
 				<th> Room </th>
-				<th> Eq Out </th>
-				<th> Eq In </th>
+				<th colspan="2"> Eq O/I </th>
 				<th> Handouts </th>
 				<th> Evaluations </th>
 				<th> Other </th>
@@ -41,7 +41,11 @@ items = page.items
 	<%	
 		session = item.session
 		person = item.person
-		if marker == "%s-%s" % (session.id, person.id):
+		
+		session_id = session.id
+		person_id = person.id
+		
+		if marker == "%s-%s" % (session_id, person_id):
 			sessionstyle = "marker markercolor"
 		else:
 			sessionstyle = "session sessioneven" if count % 2 == 0 else "session sessionodd"
@@ -51,35 +55,56 @@ items = page.items
 		else:
 			cellstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
 		
+		
 		if name and code:
-			uurl = request.route_url("admin_day_edit_nc", day=section.description, session=session.id, person=person.id, name=name, code=code)
+			uurl = request.route_url("admin_day_edit_nc", day=day, session=session_id, person=person_id, name=name, code=code)
 		elif name:
-			uurl = request.route_url("admin_day_edit_n", day=section.description, session=session.id, person=person.id, name=name)
+			uurl = request.route_url("admin_day_edit_n", day=day, session=session_id, person=person_id, name=name)
 		elif code:
-			uurl = request.route_url("admin_day_edit_c", day=section.description, session=session.id, person=person.id, code=code)
+			uurl = request.route_url("admin_day_edit_c", day=day, session=session_id, person=person_id, code=code)
 		else:
-			uurl = request.route_url("admin_day_edit", day=section.description, session=session.id, person=person.id)
+			uurl = request.route_url("admin_day_edit", day=day, session=session_id, person=person_id)
+		comments = session.comments
+		loc = session.location
+		other = session.other
+		title = session.title
 	%>
 		<tr>
 			<td class="table-cell-reg ${sessionstyle}">${u"\u2714" if item.registered else ""}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${item.type}</a></td>
-			
-			<td class="spacer"></td>
-			
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.code}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.title[:25]}&hellip;</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.location if len(session.location) < 20 else session.location[:20]+ u"\u2026"}</a></td>
+
+			<td class="${sessionstyle} code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
+% if len(loc) < 16:
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${loc}</a></td>
+% else:
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:15]+u"\u2026"}</abbr></a></td>
+% endif
 			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
 			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.other}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.comments}</a></td>
+% if other:
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${other}">${other[:5]}</abbr></a></td>
+% else:
+					<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"></a></td>
+% endif
+% if comments:
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${comments}">${comments[:5]}</abbr></a></td>
+% else:
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"></a></td>
+% endif
 		</tr>
 	<%	count += 1 %>
 % endfor
 	</table>
 	<p>Page: ${page.pager()}</p>
+</div>
+<div id="sidebar" class="col-xs-2">
+	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
+	<table class="table">
+	</table>
+</div>
 </div>

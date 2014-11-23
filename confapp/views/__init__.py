@@ -29,6 +29,7 @@ class BaseAdminView(BaseView):
 	def error_redirect(self, msg, location, route=True, **kwargs):
 		"""Will abort any DB transaction, and rollback... probably"""
 		self.request.session.flash(msg)
+		log.error("WHAT HAPPENED? %s" % msg)
 		if route:
 			raise HTTPFound(location=self.request.route_url(location, **kwargs))
 		else:
@@ -36,10 +37,11 @@ class BaseAdminView(BaseView):
 	
 	def doFlush(self, routetype, id=None, **kwargs):
 		try:
-			DBSession.flush()
+			pass
+			#DBSession.flush()
 		except DBAPIError as e:
 			log.error(format_exc())
-			#DBSession.rollback()
+			DBSession.rollback()
 			self.idErrorRedirect("Database error: %s" % e, routetype, id, **kwargs)
 	
 	def getItem(self, CLS, _id, errloc='admin_home', route=True, polymorphic=False, **kwargs):

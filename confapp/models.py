@@ -81,6 +81,7 @@ class Person(Base):
 	phone = Column(String(100))
 	email = Column(String(100))
 
+#person<->session association
 class Association(Base):
 	id = None
 	person_id = Column(Integer, ForeignKey('person.id'), primary_key=True)
@@ -138,6 +139,25 @@ class Session(Base):
 	def equip_returned(self, value):
 		#sort and stuff
 		self._equip_returned = sortstripstring(value)
+
+
+class Helper(Base):
+	typename = "Helper"
+	routetype = "helper"
+	
+	lastname = Column(Unicode(100))
+	firstname = Column(Unicode(100))
+	
+	phone = Column(String(100))
+	
+	dispatched = Column(Integer)
+	returned = Column(Integer)
+	
+	away = Column(Boolean)
+	comment = Column(Unicode(50))
+	
+	session_id = Column(Integer, ForeignKey('session.id'))
+	session = relationship("Session")
 
 Index('idx_name1', "session.day", "person.lastname", "person.firstname")
 Index('idx_name2', "session.day", "person.firstname", "person.lastname")
