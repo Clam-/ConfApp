@@ -20,11 +20,15 @@ from confapp.models import (
 % endfor
 </select>\
 </%def>\
-<%def name="selectidlist(name, items, attr, default='')">\
+<%def name="selectidlist(name, items, attrs, default='', _class=None, _id=None)">\
+% if _class:
+<select class="${_class}" name="${name}" id="${_id}">\
+% else:
 <select name="${name}">\
+% endif
 <option value="" selected="selected">(${default})</option>\
 % for item in items:
-<option value="${item.id}">${getattr(item, attr)}</option>\
+<option value="${item.id}">${getattr(item, attrs[0])}.${getattr(item, attrs[1])[:1]}</option>\
 % endfor
 </select>\
 </%def>\
@@ -141,6 +145,15 @@ from confapp.models import (
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script type="text/javascript" src="http://nyanya.org/regbutt/res/js/bootstrap.min.js"></script>
 	<script type="text/javascript">
+var timeoutLooper = null;
+function get_updates () {
+	if (timeoutLooper != null) {
+		clearTimeout(timeoutLooper)
+	}
+	$('#sidebar table').load("/helperupdate/");
+	timeoutLooper = setTimeout(get_updates, 15000);
+}
+	
 $( document ).ready( 
 function() {
 	$("td.user").hover(
@@ -170,20 +183,15 @@ function() {
 			$( this ).parent().children("td.marker").toggleClass( "userselect" );
 		}
 	);
-
-	function get_updates () {
-        $('#sidebar table').load("/helperupdate/");
-    }
-
     $('#sidebar a').click(function () {
-        get_updates();
+		get_updates();
     });
-
     get_updates();
 });
 
 function helper_returned(url) {
 	$('#sidebar table').load(url);
+	//timeoutLooper = setTimeout(get_updates, 15000);
 }
 	</script>
 </head> 

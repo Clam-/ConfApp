@@ -2,7 +2,7 @@
 <div class="maxbig container-fluid">
 <div class="col-sm-10">
 <% day = section.description %>
-	<h2>Registrations for ${day}</h2>
+	<h3>Registrations for ${day}</h3>
 
 	<form class="form-inline" action="${request.route_url("admin_day_list", day=day)}" method="post">
 		<div class="form-group">
@@ -36,7 +36,6 @@
 count = 0 
 items = page.items
 %>
-
 % for item in items:
 	<%	
 		session = item.session
@@ -68,6 +67,7 @@ items = page.items
 		loc = session.location
 		other = session.other
 		title = session.title
+		bld, loc = loc.split(".", 1)
 	%>
 		<tr>
 			<td class="table-cell-reg ${sessionstyle}">${u"\u2714" if item.registered else ""}</a></td>
@@ -78,9 +78,9 @@ items = page.items
 			<td class="${sessionstyle} code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
 			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
 % if len(loc) < 16:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${loc}</a></td>
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><strong>${bld}.</strong>${loc}</a></td>
 % else:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:15]+u"\u2026"}</abbr></a></td>
+			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}"><strong>${bld}.</strong>${loc[:15]+u"\u2026"}</abbr></a></td>
 % endif
 			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
 			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>

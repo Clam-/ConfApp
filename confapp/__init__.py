@@ -40,6 +40,8 @@ def main(global_config, **settings):
 	config.add_route('admin_session_edit', '/session/edit/{id}')
 	config.add_route('admin_session_list', '/session/')
 	
+	config.add_route('admin_times', '/TIMES/')
+	
 	config.add_route('admin_special_list', '/special/{day}/')
 	config.add_route('admin_special_home', '/special/')
 	config.add_route('admin_day_list', '/{day}/')
@@ -52,5 +54,6 @@ def main(global_config, **settings):
 	config.add_route('admin_day_edit_c', '/{day}/{person}/{session}/code/{code}')
 	config.add_route('admin_day_edit_n', '/{day}/{person}/{session}/name/{name}')
 	config.add_route('admin_day_edit_nc', '/{day}/{person}/{session}/{code}/{name}')
+	
 	config.scan()
 	return config.make_wsgi_app()

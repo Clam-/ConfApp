@@ -21,6 +21,7 @@ TIMEFORMAT = "%H:%M:%S"
 				<th> Phone </th>
 				<th> Time </th>
 				<th> Location </th>
+				<th> Comment </th>
 				<th> Return </th>
 			</tr>
 		</thead>
@@ -28,15 +29,16 @@ TIMEFORMAT = "%H:%M:%S"
 % for item in items:
 	<%	
 		uurl = request.route_url("admin_helper_edit", id=item.id)
-		timecls = "text-success"
+		timecls = " text-success"
 		dispatched = item.dispatched
 		returned = item.returned
 		longtime = None
 		itime = None
+		namecls = ""
 		if item.session:
 			session = item.session
 			btncls = ""
-			timecls = "text-danger"
+			timecls = " text-danger"
 			loc = session.location
 			if dispatched:
 				itime = time-dispatched
@@ -46,13 +48,13 @@ TIMEFORMAT = "%H:%M:%S"
 			btncls = " disabled"
 			if item.away:
 				loc = "Away"
-				timecls = "text-danger"
+				timecls = " text-warning"
 				if dispatched:
 					itime = time-dispatched
 					longtime = dispatched
 			else:
 				loc = "-"
-				timecls = "text-success"
+				timecls = " text-success"
 				if returned:
 					itime = time-returned
 					longtime = returned
@@ -61,15 +63,16 @@ TIMEFORMAT = "%H:%M:%S"
 		
 	%>
 		<tr>
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${item.firstname}</a></td>
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${item.lastname}</a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}">${item.firstname}</a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}">${item.lastname}</a></td>
 			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${item.phone}</a></td>
 % if longtime:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell ${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
 % else:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell ${timecls}">?</abbr></a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}">?</abbr></a></td>
 % endif
 			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${loc}</a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${item.comment}</a></td>
 			<td class="${userstyle}"><a href="${request.route_url("admin_helper_returned_list", id=item.id)}" class="btn btn-primary btn-xs${btncls}">${"Returned" if not session else "Return"}</a></td>
 		</tr>
 	<%	count += 1 %>

@@ -1,5 +1,5 @@
 <%inherit file="admin-base.mako"/>
-<div class="maxbig">
+<div class="maxbig container">
 	<h2>${section.capitalize()} list</h2>
 
 	<form class="form-inline" action="${request.route_url("admin_person_list", day=section)}" method="post">

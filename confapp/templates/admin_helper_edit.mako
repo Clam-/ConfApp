@@ -18,7 +18,7 @@
 		<div class="form-group">
 			<label class="col-sm-2 control-label" for="formPhone">Phone:</label>
 			<div class="col-sm-5">
-				<textarea class="form-control" name="phone" rows="2" cols="20" id="formPhone">${item.phone}</textarea>
+				<input class="form-control" type="text" name="phone" value="${item.phone}" id="formPhone"/>
 			</div>
 		</div>
 		

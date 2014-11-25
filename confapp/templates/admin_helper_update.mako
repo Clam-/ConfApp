@@ -14,15 +14,16 @@ TIMEFORMAT = "%H:%M:%S"
 % for item in items:
 	<%	
 		uurl = request.route_url("admin_helper_edit", id=item.id)
-		timecls = "text-success"
+		timecls = " text-success"
 		dispatched = item.dispatched
 		returned = item.returned
 		longtime = None
 		itime = None
+		away = item.away
 		if item.session:
 			session = item.session
 			btncls = ""
-			timecls = "text-danger"
+			timecls = " text-danger"
 			loc = session.location
 			if dispatched:
 				itime = time-dispatched
@@ -30,30 +31,36 @@ TIMEFORMAT = "%H:%M:%S"
 		else:
 			session = None
 			btncls = " disabled"
-			if item.away:
+			if away:
 				loc = "Away"
-				timecls = "text-danger"
+				timecls = " text-warning"
 				if dispatched:
 					itime = time-dispatched
 					longtime = dispatched
 			else:
 				loc = "-"
-				timecls = "text-success"
+				timecls = " text-success"
 				if returned:
 					itime = time-returned
 					longtime = returned
 					
 		userstyle = "user usereven" if count % 2 == 0 else "user userodd"
-		
+		comment = item.comment
 	%>
 		<tr>
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${item.phone}">${item.firstname}.${item.lastname[:1]}</abbr></a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}"><abbr title="${item.phone}">${item.firstname}.${item.lastname[:1]}</abbr></a></td>
 % if longtime:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell ${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
 % else:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell ${timecls}">?</abbr></a></td>
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}">?</abbr></a></td>
 % endif
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:4]}</a></td>
+% if away and comment:
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${item.comment}">${loc[:4]}</abbr></a></td>
+% elif away:
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${loc[:4]}</a></td>
+% else:
+			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:4]}</abbr></a></td>
+% endif
 			<td class="${userstyle}"><a href="#" onclick='helper_returned("${request.route_url("admin_helper_returned", id=item.id)}");return false;' class="btn btn-primary btn-xs${btncls}">${"Ret" if not session else "Ret'd"}</a></td>
 		</tr>
 	<%	count += 1 %>

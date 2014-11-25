@@ -22,6 +22,7 @@ from confapp.models import (
 	DayType,
 	HandoutType,
 	PersonType,
+	HandoutSaidType,
 	FRIENDLYDAYMAP,
 	)
 
@@ -61,18 +62,37 @@ class TempSession:
 		self.day = day
 		#self.handouts = set()
 		
+HANDOUTS = {
+	"I will require ACHPER Victorian Branch to photocopy my handout materials" : "A",
+	"I will provide my own handout materials and distribute to delegates" : "W",
+	"I will not be providing handouts" : "N",
+	"" : "N",
+}
+
+def processHandouts(cells):
+	said = HANDOUTS[cells[0].strip()]
+	did = cells[1].strip().lower() == "received"
+	return said, did
+
 def processCode(code, ap):
 	if ap:
 		return "%s-%s" % (code, ap)
 	else:
 		return code
+
+def processEquip(data):
+	pass # map long names to short names, like "Whiteboard" : "WB"
 		
 def processRoom(cells):
+	if "Monash Sports" in cells[0]:
+		cells[0] = "1"
 	return str("%s.%s" % (cells[0].strip(), cells[1].strip()))
 	
-def processFacs(cells):
+def processFacs(data):
+	data = data.replace(", ", "\n")
+	data = data.replace(",", "\n")
 	n = []
-	for cell in cells:
+	for cell in sorted(data.split("\n")):
 		cell.strip()
 		if cell: n.append(cell)
 	return n
@@ -86,6 +106,24 @@ def processPhone(p1, p2):
 		return (p2,)
 	else:
 		return ()
+		
+def processCoPresent(cells):
+	#first, last, org, email
+	people = []
+	fgroup = [x.strip() for x in cells[0].split("/")]
+	lgroup = [x.strip() for x in cells[1].split("/")]
+	if len(fgroup) != len(lgroup):
+		print "WARNING: Multi CoPresent split len not match for\n(%s)\n(%s)" % (fgroup, lgroup)
+		return []
+	org = cells[2].strip()
+	email = cells[3].strip()
+	for i, fname in enumerate(fgroup):
+		p = TempPerson(fname, lgroup[i])
+		p.email.add(email)
+		p.org = org
+		people.append(p)
+	return people
+		
 def process(fn):
 	names = {} # { (first, last) : TempPerson}
 	sessions = {} # { code : TempSession }
@@ -95,41 +133,47 @@ def process(fn):
 		for row in unicode_csv_reader(csvfile):
 			if row[0].strip() == 'CODE': continue
 			
-			name = ("%s" % row[15].strip(), "%s" % row[16].strip())
+			name = ("%s" % row[6].strip(), "%s" % row[7].strip())
 			
-			type = row[6].strip()
+			type = "PRESENTER"
 			
-			code = processCode(row[0].strip(), row[1].strip())
+			#code = processCode(row[0].strip(), row[1].strip())
+			code = row[0]
 			
-			sessname = row[11].strip()
+			sessname = row[4].strip()
 			
-			location = processRoom(row[52:54])
-			loctype = str(row[54].strip())
+			location = processRoom(row[38:40])
+			loctype = str(row[34].strip())
 			
 			day = "T" if code[0] in ("A", "B", "C") else "F"
 			
-			phone = processPhone(str(row[24].strip()), str(row[25].strip()))
+			#phone = processPhone(str(row[24].strip()), str(row[25].strip()))
 			
-			org = row[17].strip()
-			email = str(row[18].strip().lower())
+			org = row[8].strip()
+			email = str(row[9].strip().lower())
 			
-			facilities = "\n".join(processFacs(row[135:142]))
+			facilities_req = "\n".join(processFacs(row[35]))
+			facilities_got = "\n".join(processFacs(row[36]))
 			
-			handouts = True if row[153].strip() else False
+			equipment = processEquip(row[36])
+			
+			handouts_said, handouts_did = processHandouts(row[42:44])
+			handouts = handouts_did
 			
 			p = None
-			if name in names:
-				p = names[name]
-			else:
-				p = TempPerson(*name)
-				names[name] = p
+			if name != ("", ""):
+				if name in names:
+					p = names[name]
+				else:
+					p = TempPerson(*name)
+					names[name] = p
+					
+				p.email.add(email)
+				#~ for ph in phone:
+					#~ p.phone.add(ph)
 				
-			p.email.add(email)
-			for ph in phone:
-				p.phone.add(ph)
-			
-			p.sessions.append((code, type))
-			
+				p.sessions.append((code, type))
+				
 			s = None
 			if code in sessions:
 				s = sessions[code]
@@ -140,8 +184,28 @@ def process(fn):
 			s.name = sessname
 			s.location = location
 			s.loctype = loctype
+			s.handouts_said = handouts_said
 			s.handouts = handouts
-			s.facilities = facilities if facilities else None
+			s.facilities_req = facilities_req if facilities_req else None
+			s.facilities_got = facilities_got if facilities_got else None
+			
+			copres = []
+			# process co-presenters part1
+			if row[11].strip():
+				copres += processCoPresent(row[11:15]) #first, last, org, email
+			# process co-presenters part2
+			if row[15].strip():
+				copres += processCoPresent(row[16:19])
+			
+			for ip in copres:
+				name = (ip.firstname, ip.lastname)
+				if name not in names:
+					names[name] = ip
+				else:
+					ip = names[name]
+				type = "COPRESENTER"
+				ip.sessions.append((code, type))
+					
 			count += 1
 		
 	return (names, sessions)
@@ -155,7 +219,8 @@ def pootInDB(names, sessions, DBSession):
 			session = sessions[session]
 			s = Session(code=session.code, title=session.name, 
 				day=DayType.from_string(session.day), location=session.location,
-				loctype=session.loctype, facilities=session.facilities,
+				loctype=session.loctype, facilities_req=session.facilities_req, 
+				facilities_got=session.facilities_got, handouts_said=HandoutSaidType.from_string(session.handouts_said),
 				handouts=HandoutType.pending if session.handouts else HandoutType.na,
 				evaluations=HandoutType.pending)
 			DBSession.add(s)
