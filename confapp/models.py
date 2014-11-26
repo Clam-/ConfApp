@@ -58,6 +58,7 @@ class HandoutType(DeclEnum):
 	pending = "P", "Pending"
 	handedout = "H", "Handed out"
 	collected = "C", "Collected"
+	online = "O", "Online-Only"
 
 class HandoutSaidType(DeclEnum):
 	na = "N", "N/A"

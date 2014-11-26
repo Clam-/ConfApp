@@ -1,4 +1,5 @@
 <%inherit file="admin-base.mako"/>
+
 <div class="maxbig container-fluid">
 <div class="col-sm-10">
 <% day = section.description %>
