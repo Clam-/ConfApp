@@ -103,6 +103,12 @@ class AdminListing(BaseAdminView):
 				filter(Session.day == day, Session.code == code).\
 				filter(Person.lastname.like("%s%%" % name) | Person.firstname.like("%s%%" % name)).\
 				order_by(Person.lastname, Person.firstname).all())
+			if len(page.items) < 1:
+				page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
+					options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
+					filter(Session.day == day, Session.code.like("%s%%" % code)).\
+					filter(Person.lastname.like("%s%%" % name) | Person.firstname.like("%s%%" % name)).\
+					order_by(Person.lastname, Person.firstname).all())
 		elif name:
 			page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
@@ -113,6 +119,11 @@ class AdminListing(BaseAdminView):
 			page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
 				filter(Session.day == day, Session.code == code).order_by(Person.lastname, Person.firstname).all())
+			if len(page.items) < 1:
+				print "NO CODE ITEMS??"
+				page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
+					options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
+					filter(Session.day == day, Session.code.like("%s%%" % code)).order_by(Person.lastname, Person.firstname).all())
 		else:
 			page = self.getPaginatePage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
@@ -188,6 +199,11 @@ class AdminEdit(BaseAdminView):
 		md = request.matchdict
 		name = md.get("name")
 		code = md.get("code")
+		
+		if not name:
+			name = params.get("name")
+		if not code:
+			code = params.get("code")
 		
 		log.debug("\n\nNAME: %s CODE: %s\n\n" % (name, code))
 		
@@ -273,20 +289,21 @@ class AdminEdit(BaseAdminView):
 					log.error(format_exc())
 					self.idErrorRedirect("Database error: %s" % e, "day",
 						session=sid, person=pid)
-				
+				anchor = "%s-%s" % (sid, pid)
+				query = (("marker", anchor),)
 				if error:
 					if name and code:
-						return HTTPFound(location=request.route_url('admin_day_edit_nc', session=sid, person=pid, day=oday, name=name, code=code))
+						return HTTPFound(location=request.route_url('admin_day_edit_nc', session=sid, person=pid, day=oday, name=name, code=code, _anchor=anchor, _query=query))
 					elif name:
-						return HTTPFound(location=request.route_url('admin_day_edit_n', session=sid, person=pid, day=oday, name=name))
+						return HTTPFound(location=request.route_url('admin_day_edit_n', session=sid, person=pid, day=oday, name=name, _anchor=anchor, _query=query))
 					elif code:
-						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code))
+						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code, _anchor=anchor, _query=query))
 					else:
-						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code))
+						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code, _anchor=anchor, _query=query))
 			
 			anchor = "%s-%s" % (sid, pid)
 			query = (("marker", anchor),)
-				
+			print "REDIRECT TO:", name, code
 			if name and code:
 				return HTTPFound(location=request.route_url('admin_day_search', day=oday, name=name, code=code, _anchor=anchor, _query=query))
 			elif name:

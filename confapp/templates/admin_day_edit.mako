@@ -1,7 +1,9 @@
 <%inherit file="admin-base.mako"/>
-<script type="text/javascript" src="/files/js/sidebar.js" />
+<!--
+<script type="text/javascript" src="/files/js/sidebar.js"></script>
+-->
 <div class="container-fluid">
-<div class="col-sm-10">
+<div class="col-sm-12">
 	<h3>Editing Check-in for ${section}</h3>
 	<form class="form-horizontal" action="${request.route_url("admin_day_edit", day=section, session=session.id, person=person.id)}" method="post">
 		<div class="form-group">
@@ -159,9 +161,11 @@ if faclen < 2:
 		
 	</form>
 </div>
+<!--
 <div id="sidebar" class="col-xs-2">
 	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
 	<table class="table">
 	</table>
 </div>
+-->
 </div>

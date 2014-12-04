@@ -48,9 +48,9 @@ from confapp.models import (
 		.table>thead>tr>th {padding:0.3em 0.3em 0.3em 0.3em;}
 		.table>tbody>tr>td {padding:0.3em 0.3em 0.3em 0.3em;}
 	</style>
-	<script type="text/javascript" src="/files/js/jquery-2.0.0.min.js" />
+	<script type="text/javascript" src="/files/js/jquery-2.1.1.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script type="text/javascript" src="/files/js/bootstrap.min.js" />
+	<script type="text/javascript" src="/files/js/bootstrap.min.js"></script>
 	<script type="text/javascript">
 $( document ).ready( 
 function() {

@@ -141,7 +141,7 @@ def process(fn):
 			type = "PRESENTER"
 			
 			#code = processCode(row[0].strip(), row[1].strip())
-			code = row[0]
+			code = row[0].strip()
 			
 			sessname = row[4].strip()
 			
@@ -155,8 +155,8 @@ def process(fn):
 			org = row[8].strip()
 			email = str(row[9].strip().lower())
 			
-			facilities_req = "\n".join(processFacs(row[36]))
-			facilities_got = "\n".join(processFacs(row[37]))
+			facilities_req = "\n".join(processFacs(row[36].strip()))
+			facilities_got = "\n".join(processFacs(row[37].strip()))
 			
 			#equipment = processEquip(row[36])
 			

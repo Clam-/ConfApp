@@ -1,5 +1,5 @@
 <%inherit file="admin-base.mako"/>
-
+<script type="text/javascript" src="/files/js/sidebar.js"></script>
 <div class="maxbig container-fluid">
 <div class="col-sm-10">
 <% day = section.description %>
