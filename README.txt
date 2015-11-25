@@ -14,6 +14,8 @@ Getting Started
 
 - $VENV/bin/pserve development.ini
 
+- uwsgi --ini-paste development.ini
+
 Note to self
 ------------
 git fetch --all
