@@ -8,6 +8,7 @@ from sqlalchemy import (
 	Unicode,
 	UnicodeText,
 	Table,
+	DateTime,
 	)
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import (
@@ -25,6 +26,24 @@ from sqlalchemy.orm import (
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from pyramid.security import (
+    Allow,
+    Everyone,
+    )
+
+class RootFactory(object):
+	__acl__ = [
+		(Allow, 'group:checkin', 'checkin'),
+		(Allow, 'group:admin', 'checkin'),
+		(Allow, 'group:admin', 'admin'),
+		(Allow, Everyone, 'splash'),
+		# COMMENT OUT THE BELOW POST TESTING
+		#~ (Allow, Everyone, 'admin'),
+		#~ (Allow, Everyone, 'checkin'),
+	]
+	def __init__(self, request):
+		pass
+
 from confapp.libs.declenum import DeclEnum
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -35,6 +54,13 @@ class Base(object):
 	def __tablename__(cls):
 		return cls.__name__.lower()
 	id = Column(Integer, primary_key=True)
+	
+	def __repr__(self):
+		attrs = []
+		for key in self._repr_attrs:
+			attrs.append((key, getattr(self, key)))
+		return self.__class__.__name__ + '(' + ', '.join(x[0] + '=' +
+			repr(x[1]) for x in attrs) + ')'
 	
 Base = declarative_base(cls=Base)
 
@@ -55,9 +81,9 @@ class PersonType(DeclEnum):
 
 class HandoutType(DeclEnum):
 	na = "N", "N/A"
-	pending = "P", "Pending"
+	pending = "P", "At Desk"
 	handedout = "H", "Handed out"
-	collected = "C", "Collected"
+	collected = "C", "Returned"
 	online = "O", "Online-Only"
 
 class HandoutSaidType(DeclEnum):
@@ -71,16 +97,20 @@ def sortstripstring(s):
 	items.sort()
 	return ",".join(items)
 
-class Person(Base):
-	typename = "Person"
-	routetype = "person"
-	
+class Person(Base):	
 	lastname = Column(Unicode(100))
 	firstname = Column(Unicode(100))
 	
 	phone = Column(String(100))
 	email = Column(String(100))
-
+	
+	assoc = relationship("Association", backref="person", cascade="save-update, merge, delete")
+	
+	_repr_attrs = ["firstname", "lastname"]
+	
+	def label(self):
+		return "Person: %s %s" % (self.firstname, self.lastname)
+		
 #person<->session association
 class Association(Base):
 	id = None
@@ -88,28 +118,29 @@ class Association(Base):
 	session_id = Column(Integer, ForeignKey('session.id'), primary_key=True)
 	type = Column(PersonType.db_type(), nullable=False)
 	registered = Column(Boolean)
-	person = relationship("Person", backref="assoc")
+	registered_sport = Column(Boolean)
+	#person = relationship("Person", backref="assoc")
 	__table_args__ = (Index('idx_assoc', "session_id", "person_id"), )
-
+	
+	_repr_attrs = ["person_id", "session_id"]
 
 class Session(Base):
-	typename = "Session"
-	routetype = "session"
-	
-	code = Column(Unicode(10), index=True, unique=True)
+	code = Column(Unicode(10), index=True, unique=True, nullable=False)
 	title = Column(Unicode(50))
 	
 	day = Column(DayType.db_type(), nullable=False, index=True)
 	
-	location = Column(String(40))
+	building = Column(String(40), default="")
+	room = Column(String(40), default="")
+	address = Column(String(40))
 	loctype = Column(String(40))
 	
 	_facilities_req = deferred(Column(UnicodeText))
 	_facilities_got = deferred(Column(UnicodeText))
 	
-	handouts = Column(HandoutType.db_type(), nullable=False)
-	handouts_said = Column(HandoutSaidType.db_type(), nullable=False)
-	evaluations = Column(HandoutType.db_type(), nullable=False)
+	handouts = Column(HandoutType.db_type(), nullable=False, default=HandoutType.na)
+	handouts_said = Column(HandoutSaidType.db_type(), nullable=False, default=HandoutSaidType.na)
+	evaluations = Column(HandoutType.db_type(), nullable=False, default=HandoutType.pending)
 	
 	_equipment = Column(String(50))
 	_equip_returned = Column(String(50))
@@ -117,8 +148,22 @@ class Session(Base):
 	other = Column(Unicode(200))
 	comments = Column(Unicode(200))
 	
-	assoc = relationship("Association", backref="session")
+	_repr_attrs = ["code", "title"]
 	
+	assoc = relationship("Association", backref="session", cascade="save-update, merge, delete")
+	
+	def __init__(self, **kwargs):
+		self.handouts = HandoutType.na
+		self.handouts_said = HandoutSaidType.na
+		self.evaluations = HandoutType.na
+		self.building = ""
+		self.room = ""
+		for key in kwargs:
+			setattr(self, key, kwargs[key])
+	
+	def label(self):
+		return "Session: %s - %s" % (self.code, self.title[:20])
+		
 	@property
 	def facilities_req(self):
 		return self._facilities_req if self._facilities_req else ""
@@ -153,9 +198,6 @@ class Session(Base):
 
 
 class Helper(Base):
-	typename = "Helper"
-	routetype = "helper"
-	
 	lastname = Column(Unicode(100))
 	firstname = Column(Unicode(100))
 	
@@ -170,6 +212,11 @@ class Helper(Base):
 	session_id = Column(Integer, ForeignKey('session.id'))
 	session = relationship("Session")
 	__table_args__ = (Index('idx_helper', "away", "dispatched", "firstname"), )
+	
+	_repr_attrs = ["firstname", "lastname"]
+	
+	def label(self):
+		return "Helper: %s %s" % (self.firstname, self.lastname)
 
 class TripLogger(Base):
 	helper_id = Column(Integer, ForeignKey('helper.id'))
@@ -180,7 +227,15 @@ class TripLogger(Base):
 	time_returned = Column(Integer)
 	time_total = Column(Integer)
 	
-
+class DeleteLogger(Base):
+	item = Column(Unicode)
+	timestamp = Column(DateTime)
+	
+CLASSMAPPER = {
+	Person.__tablename__ : Person,
+	Session.__tablename__ : Session,
+	Helper.__tablename__ : Helper,
+}
 #Index('idx_name1', "session.day", "person.lastname", "person.firstname")
 #Index('idx_name2', "session.day", "person.firstname", "person.lastname")
 #Index('idx_code', "session.day", "session.code")

@@ -1,41 +1,56 @@
 <%inherit file="admin-base.mako"/>
 <script type="text/javascript" src="/files/js/sidebar.js"></script>
-<div class="maxbig container-fluid">
+<div class="container-fluid">
+% if logged_in == "main" and helpers:
 <div class="col-sm-10">
+% endif
 <% day = section.description %>
-	<h3>Registrations for ${day}</h3>
-
+	<div class="header">
+		<h3>Registrations for ${day}</h3>
+	</div>
 	<form class="form-inline" action="${request.route_url("admin_day_list", day=day)}" method="post">
 		<div class="form-group">
-			<label class="sr-only control-label" for="formName">Search name:</label>
-			<input class="form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name"/>
+			<label class="sr-only control-label" for="formName">Search name</label>
+			<input class="form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name" autofocus />
 		</div>
 		<div class="form-group">
-			<label class="sr-only control-label" for="formCode">Code:</label>
+			<label class="sr-only control-label" for="formCode">Code</label>
 			<input class="form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code"/>
 		</div>
 		<button type="submit" class="btn btn-default" name="form.submitted">Search</button>
 	</form>
-	<table class="table">
+	<table class="table table-condensed">
 		<thead class="table-header">
 			<tr>
-				<th> Reg&rsquo;d </th>
-				<th> Last name </th>
-				<th> First name </th>
-				<th> Type </th>
-				<th class="code"> Code </th>
-				<th> Session title </th>
-				<th> Room </th>
-				<th colspan="2"> Eq O/I </th>
-				<th> Handouts </th>
-				<th> Evaluations </th>
-				<th> Other </th>
-				<th> Comment </th>
+				<th><abbr title="Main check-in">Mn</abbr></th>
+				<th><abbr title="Sports Centre check-in">Sp</abbr>
+				<th>Last name</th>
+				<th>First name</th>
+				<th>Type</th>
+<%		
+		if name and code:
+			uurl = request.route_url("admin_day_search", day=day, name=name, code=code, _query={"sort":"code"})
+		elif name:
+			uurl = request.route_url("admin_day_search_n", day=day,  name=name, _query={"sort":"code"})
+		elif code:
+			uurl = request.route_url("admin_day_search_c", day=day,  code=code, _query={"sort":"code"})
+		else:
+			uurl = request.route_url("admin_day_list", day=day, _query={"sort":"code"})
+%>
+				<th class="code"><a href="${uurl}">Code</a></th>
+				<th>Session title</th>
+				<th><abbr title="Building">Bld</abbr>.Room</th>
+				<th colspan="2"><abbr title="Equipment Out/In">Eq O/I</abbr></th>
+				<th>Handouts</th>
+				<th><abbr title="Evaluation forms">Evals</abbr></th>
+				<th>Other</th>
+				<th>Comment</th>
 			</tr>
 		</thead>
 <% 
 count = 0 
 items = page.items
+sport = False
 %>
 % for item in items:
 	<%	
@@ -45,15 +60,17 @@ items = page.items
 		session_id = session.id
 		person_id = person.id
 		
+		if session.building == "1": sport = True
+		
 		if marker == "%s-%s" % (session_id, person_id):
-			sessionstyle = "marker markercolor"
+			rowstyle = "row-marker"
 		else:
-			sessionstyle = "session sessioneven" if count % 2 == 0 else "session sessionodd"
+			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
 		
 		if session.equipment == session.equip_returned:
-			cellstyle = sessionstyle
+			equipstyle = ""
 		else:
-			cellstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
+			equipstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
 		
 		
 		if name and code:
@@ -65,37 +82,46 @@ items = page.items
 		else:
 			uurl = request.route_url("admin_day_edit", day=day, session=session_id, person=person_id)
 		comments = session.comments
-		loc = session.location
+		room = session.room
 		other = session.other
 		title = session.title
-		bld, loc = loc.split(".", 1)
+		
+		if session.building == "1":
+			sporttick = u"\u2714" if item.registered_sport else u"\u2717"
+		else:
+			sporttick = "-"
 	%>
-		<tr>
-			<td class="table-cell-reg ${sessionstyle}">${u"\u2714" if item.registered else ""}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${item.type}</a></td>
-
-			<td class="${sessionstyle} code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
-% if len(loc) < 16:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><strong>${bld}.</strong>${loc}</a></td>
+		<tr class="${rowstyle}">
+			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered else "text-muted"}">${u"\u2714" if item.registered else u"\u2717"}</a></td>
+% if sport:
+			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered_sport else "text-muted"}">${sporttick}</a></td>
 % else:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}"><strong>${bld}.</strong>${loc[:15]+u"\u2026"}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell text-muted"></a></td>
 % endif
-			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
-			<td class="${cellstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
-% if other:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${other}">${other[:5]}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
+			<td><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
+			<td><a href="${uurl}" class="linkcell">${item.type}</a></td>
+
+			<td class="code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
+			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
+% if len(room) < 16:
+			<td><a href="${uurl}" class="linkcell"><strong>${session.building}.</strong>${room}</a></td>
 % else:
-					<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"></a></td>
+			<td><a href="${uurl}" class="linkcell"><strong>${session.building}.</strong><abbr title="${room}">${room[:15]+u"\u2026"}</abbr></a></td>
+% endif
+			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
+			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
+% if other and len(other) > 5:
+			<td><a href="${uurl}" class="linkcell"><abbr title="${other}">${other[:5]}</abbr></a></td>
+% else:
+			<td><a href="${uurl}" class="linkcell">${other}</a></td>
 % endif
 % if comments:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"><abbr title="${comments}">${comments[:5]}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell"><abbr title="${comments}">${comments[:5]}</abbr></a></td>
 % else:
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell"></a></td>
+			<td><a href="${uurl}" class="linkcell"></a></td>
 % endif
 		</tr>
 	<%	count += 1 %>
@@ -103,9 +129,11 @@ items = page.items
 	</table>
 	<p>Page: ${page.pager()}</p>
 </div>
+% if logged_in == "main" and helpers:
 <div id="sidebar" class="col-xs-2">
 	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
 	<table class="table">
 	</table>
 </div>
+% endif
 </div>

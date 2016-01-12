@@ -32,92 +32,85 @@ from confapp.models import (
 % endfor
 </select>\
 </%def>\
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html 
-	PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html> 
+<html>
 <head> 
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
 	<title>Registration - ${section}</title>
-	<link href="/files/css/confapp.css" rel="stylesheet" />
 	<!-- Bootstrap -->
-	<link href="/files/css/bootstrap.min.css" rel="stylesheet" />
-	<!-- Override -->
-	<style type="text/css">
-		.table>thead>tr>th {padding:0.3em 0.3em 0.3em 0.3em;}
-		.table>tbody>tr>td {padding:0.3em 0.3em 0.3em 0.3em;}
-	</style>
-	<script type="text/javascript" src="/files/js/jquery-2.1.1.min.js"></script>
-	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script type="text/javascript" src="/files/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" 
+		integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
+	<!-- ConfApp css -->
+	<link href="/files/css/confapp.css" rel="stylesheet" />
+	<!-- More bootstrap, etc -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" 
+		integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous">
+	</script>
 	<script type="text/javascript">
 $( document ).ready( 
 function() {
-	$("td.user").hover(
+	$("tbody>tr").hover(
 		function() {
-			$( this ).parent().children("td.user").toggleClass( "userselect" );
-			$( this ).parent().children("td.user").toggleClass( "userodd" );
+			$( this ).toggleClass( "row-hover" );
 		}, function() {
-			$( this ).parent().children("td.user").toggleClass( "userodd" );
-			$( this ).parent().children("td.user").toggleClass( "userselect" );
-		}
-	);
-	$("td.session").hover(
-		function() {
-			$( this ).parent().children("td.session").toggleClass( "sessionselect" );
-			$( this ).parent().children("td.session").toggleClass( "sessionodd" );
-		}, function() {
-			$( this ).parent().children("td.session").toggleClass( "sessionodd" );
-			$( this ).parent().children("td.session").toggleClass( "sessionselect" );
-		}
-	);
-	$("td.marker").hover(
-		function() {
-			$( this ).parent().children("td.marker").toggleClass( "userselect" );
-			$( this ).parent().children("td.marker").toggleClass( "markercolor" );
-		}, function() {
-			$( this ).parent().children("td.marker").toggleClass( "markercolor" );
-			$( this ).parent().children("td.marker").toggleClass( "userselect" );
+			$( this ).toggleClass( "row-hover" );
 		}
 	);
 });
 </script>
 </head> 
 <body> 
-	<ol id="wrapper">
-		<li id="header"> <h2>Presenter Check-in</h2> </li>
-		<li id="menu">
-			<ol id="menu_items">
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<!-- group main collapsable button and title together for better display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+			  </button>
+			  <a class="navbar-brand" href="${request.route_url("admin_home")}">Presenter DB</a>
+			</div>
+			
+			<!-- Collapsable other items -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
 % for type in DayType:
 %	if section == type:
-				<li id="${type.description.upper()}" class="currentSection">
-					<a href="${request.route_url("admin_day_list", day=type.description)}"><span> ${type} </span></a>
-				</li>
+					<li class="active"><a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a></li>
 %	else:
-				<li id="${type.description.upper()}">
-					<a href="${request.route_url("admin_day_list", day=type.description)}"><span> ${type} </span></a>
-				</li>
+					<li><a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a></li>
 %	endif
 % endfor
 % for thing in ("person", "session"):
 %	if section == thing:
-				<li id="${thing.upper()}" class="currentSection">
-					<a href="${request.route_url("admin_%s_list" % thing)}"><span> ${thing.capitalize()} </span></a>
-				</li>
-%	else:
-				<li id="${thing.upper()}">
-					<a href="${request.route_url("admin_%s_list" % thing)}"><span> ${thing.capitalize()} </span></a>
-				</li>
+					<li class="active"><a href="${request.route_url("admin_%s_list" % thing)}">${thing.capitalize()}</a></li>
+% 	else:
+					<li><a href="${request.route_url("admin_%s_list" % thing)}">${thing.capitalize()}</a></li>
 %	endif
 % endfor
-			</ol>
-		</li>
-	</ol>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+% if logged_in:
+					<li><p class="navbar-text">${logged_in}</p></li>
+					<li ><span><a href="${request.route_url("logout")}" class="btn btn-info navbar-btn" role="button">Logout</a></span></li>
+% else:
+					<li ><span><a href="${request.route_url("login")}" class="btn btn-info navbar-btn" role="button">Log in</a></span></li>
+% endif
+				</ul>
+			</div> <!-- Other items collapsable -->
+		</div>
+	</nav>
+
 <% msgs = request.session.pop_flash() %>
 % if msgs:
 <div class="container">
-	<ul>
+	<ul class="list-unstyled bg-danger">
 	% for msg in msgs:
 		<li> ${msg} </li>
 	% endfor
@@ -125,5 +118,10 @@ function() {
 </div>
 % endif
 ${next.body()}
+<footer class="footer">
+	<div class="container">
+        <p class="text-muted pad-top">Some icons provided by <a href="http://glyphicons.com/">GLYPHICONS</a></p>
+	</div>
+</footer>
 </body>
 </html>

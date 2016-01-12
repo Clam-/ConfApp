@@ -1,24 +1,25 @@
 <%inherit file="admin-base.mako"/>
-<div class="maxbig">
+<div class="container-fluid">
 	<h2>${section.capitalize()} list</h2>
 
 	<form class="form-inline" action="${request.route_url("admin_session_list", day=section)}" method="post">
 		<div class="form-group">
-			<label class="sr-only control-label" for="formName">Search title:</label>
-			<input class="form-control" id="formName" type="text" name="search.title" value="${title}" placeholder="Title"/>
+			<label class="sr-only control-label" for="formName">Search title</label>
+			<input class="form-control" id="formName" type="text" name="search.title" value="${title}" placeholder="Title" autofocus />
 		</div>
 		<div class="form-group">
-			<label class="sr-only control-label" for="formCode">Code:</label>
+			<label class="sr-only control-label" for="formCode">Code</label>
 			<input class="form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code"/>
 		</div>
 		<button type="submit" class="btn btn-default" name="form.submitted">Search</button>
+		<a href="${request.route_url("admin_session_new")}" class="btn btn-info pull-right" role="button">New</a>
 	</form>
 	<table class="table table-condensed">
 		<thead class="table-header">
 			<tr>
 				<th> Code </th>
 				<th> Session title </th>
-				<th> Room </th>
+				<th> Building.room </th>
 				<th> Eq Out </th>
 				<th> Eq In </th>
 				<th> Handouts </th>
@@ -31,27 +32,26 @@
 % for item in page.items:
 	<%	
 		if marker == str(item.id):
-			userstyle = "marker markercolor"
-			sessionstyle = "marker markercolor"
+			rowstyle = "row-marker"
 		else:
-			sessionstyle = "session sessioneven" if count % 2 == 0 else "session sessionodd"
+			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
 		
 		if item.equipment == item.equip_returned:
-			cellstyle = sessionstyle
+			equipstyle = ""
 		else:
-			cellstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
+			equipstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
 		surl = request.route_url("admin_session_edit", id=item.id)
 	%>
-		<tr>
-			<td class="code ${sessionstyle}"><a href="${surl}" class="linkcell">${item.code}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.title}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.location}</a></td>
-			<td class="${cellstyle}"><a href="${surl}" class="linkcell">${item.equipment}</a></td>
-			<td class="${cellstyle}"><a href="${surl}" class="linkcell">${item.equip_returned}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.handouts}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.evaluations}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.other}</a></td>
-			<td class="${sessionstyle}"><a href="${surl}" class="linkcell">${item.comments}</a></td>
+		<tr class="${rowstyle}">
+			<td><a href="${surl}" class="linkcell">${item.code}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.title}</a></td>
+			<td><a href="${surl}" class="linkcell"><strong>${item.building}.</strong>${item.room}</a></td>
+			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equipment}</a></td>
+			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equip_returned}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.handouts}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.evaluations}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.other}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.comments}</a></td>
 		</tr>
 	<%	count += 1 %>
 % endfor

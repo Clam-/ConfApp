@@ -5,8 +5,10 @@ from traceback import format_exc
 
 from pyramid.view import (
 	view_config,
+	forbidden_view_config,
 	view_defaults,
 	)
+
 from pyramid.httpexceptions import (
 	HTTPFound,
 	)
@@ -38,9 +40,16 @@ from confapp.models import (
 	TripLogger,
 	Helper,
 	FRIENDLYDAYMAP,
+	CLASSMAPPER,
+	sortstripstring,
 	)
 
 from time import time
+
+ORDER_BY_MAP = {
+	"" : (Person.lastname, Person.firstname),
+	"code" : (Session.code, Association.registered),
+}
 
 class DummyPage:
 	def __init__(self, items):
@@ -49,19 +58,18 @@ class DummyPage:
 		return ""
 
 class AdminListing(BaseAdminView):
-	@view_config(route_name='admin_day_search', renderer='admin_listing.mako')
-	@view_config(route_name='admin_day_search_n', renderer='admin_listing.mako')
-	@view_config(route_name='admin_day_search_c', renderer='admin_listing.mako')
+	@view_config(route_name='admin_day_search', renderer='admin_listing.mako', permission='checkin')
+	@view_config(route_name='admin_day_search_n', renderer='admin_listing.mako', permission='checkin')
+	@view_config(route_name='admin_day_search_c', renderer='admin_listing.mako', permission='checkin')
 	def admin_entry_search(self):
 		md = self.request.matchdict
-		params = self.request.params
 		day = md.get("day")
 		name = md.get("name")
 		code = md.get("code")
 		log.debug("\n\n??? %s" % md)
 		return self.do_entry_search(day, name, code)	
 	
-	@view_config(route_name='admin_day_list', renderer='admin_listing.mako')
+	@view_config(route_name='admin_day_list', renderer='admin_listing.mako', permission='checkin')
 	def admin_entry_list(self):
 		md = self.request.matchdict
 		params = self.request.params
@@ -71,17 +79,17 @@ class AdminListing(BaseAdminView):
 
 		return self.do_entry_search(day, name, code)
 		
-	@view_config(route_name='admin_special_list', renderer='admin_special.mako')
+	@view_config(route_name='admin_special_list', renderer='admin_special.mako', permission='checkin')
 	def admin_special_list(self):
-		md = self.request.matchdict
-		params = self.request.params
+		request = self.request
+		md = request.matchdict
 		day = md.get("day")
 		if not day:
 			#error_redirect(self, msg, location, route=True, **kwargs):
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		day = FRIENDLYDAYMAP.get(day.lower())
 		if not day:
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		
 		page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 			options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
@@ -91,11 +99,13 @@ class AdminListing(BaseAdminView):
 	def do_entry_search(self, day, name, code):
 		if not day:
 			#error_redirect(self, msg, location, route=True, **kwargs):
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		day = FRIENDLYDAYMAP.get(day.lower())
 		if not day:
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		log.debug("\n\nSEARCHING: %s OR %s\n" % (name, code))
+		
+		order_by = ORDER_BY_MAP.get(self.request.params.get("sort", ""),(Person.lastname, Person.firstname))
 		
 		if name and code:
 			page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
@@ -108,31 +118,32 @@ class AdminListing(BaseAdminView):
 					options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
 					filter(Session.day == day, Session.code.like("%s%%" % code)).\
 					filter(Person.lastname.like("%s%%" % name) | Person.firstname.like("%s%%" % name)).\
-					order_by(Person.lastname, Person.firstname).all())
+					order_by(*order_by).all())
 		elif name:
 			page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
 				filter(Session.day == day).\
 				filter(Person.lastname.like("%s%%" % name) | Person.firstname.like("%s%%" % name)).\
-				order_by(Person.lastname, Person.firstname).all())
+				order_by(*order_by).all())
 		elif code:
 			page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
-				filter(Session.day == day, Session.code == code).order_by(Person.lastname, Person.firstname).all())
+				filter(Session.day == day, Session.code == code).order_by(*order_by).all())
 			if len(page.items) < 1:
 				print "NO CODE ITEMS??"
 				page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 					options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
-					filter(Session.day == day, Session.code.like("%s%%" % code)).order_by(Person.lastname, Person.firstname).all())
+					filter(Session.day == day, Session.code.like("%s%%" % code)).order_by(*order_by).all())
 		else:
 			page = self.getPaginatePage(DBSession.query(Association).join(Association.session, Association.person).\
 				options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
-				filter(Session.day == day).order_by(Person.lastname, Person.firstname), 30)
-				
-		return dict(section=day, page=page, name=name, code=code, marker=self.request.params.get("marker"), time=time())
+				filter(Session.day == day).order_by(*order_by), 30)
+		
+		return dict(section=day, page=page, name=name, code=code, marker=self.request.params.get("marker"), 
+			time=time(), logged_in=self.request.authenticated_userid, helpers=self.request.registry.settings["helpers"] == "true")
 	
 
-	@view_config(route_name='admin_session_list', renderer='admin_session_list.mako')
+	@view_config(route_name='admin_session_list', renderer='admin_session_list.mako', permission='checkin')
 	def admin_session_list(self):
 		params = self.request.params
 		title = params.get("search.title")
@@ -146,9 +157,9 @@ class AdminListing(BaseAdminView):
 			page = DummyPage(DBSession.query(Session).filter(Session.code == code).order_by(Session.code))
 		else:
 			page = self.getPaginatePage(DBSession.query(Session).order_by(Session.code), 30)
-		return dict(section="session", page=page, title=title, code=code)
+		return dict(section="session", page=page, title=title, code=code, logged_in=self.request.authenticated_userid)
 			
-	@view_config(route_name='admin_person_list', renderer='admin_person_list.mako')
+	@view_config(route_name='admin_person_list', renderer='admin_person_list.mako', permission='checkin')
 	def admin_person_list(self):
 		params = self.request.params
 		name = params.get("search.name")
@@ -169,29 +180,30 @@ class AdminListing(BaseAdminView):
 		else:
 			page = self.getPaginatePage(DBSession.query(Person).order_by(Person.lastname, Person.firstname), 30)
 		
-		return dict(section="person", page=page)
+		return dict(section="person", page=page, logged_in=self.request.authenticated_userid)
 		
-	@view_config(route_name='admin_helper_list', renderer='admin_helper_list.mako')
+	@view_config(route_name='admin_helper_list', renderer='admin_helper_list.mako', permission='checkin')
 	def admin_helper_list(self):
 		helpers = DBSession.query(Helper).order_by(Helper.away, Helper.dispatched, Helper.firstname).all()
 		return dict(section="helper", items=helpers, time=time())
 
-	@view_config(route_name='admin_times', renderer='admin_times.mako')
+	@view_config(route_name='admin_times', renderer='admin_times.mako', permission='checkin')
 	def admin_times(self):
 		times = DBSession.query(TripLogger.building, func.avg(TripLogger.time_total).label('time_avg'))\
 			.group_by(TripLogger.building).all()
-		return dict(section="Trip times", items=times)
+		return dict(section="Trip times", items=times, logged_in=self.request.authenticated_userid)
 
-	@view_config(route_name='admin_helper_update', renderer='admin_helper_update.mako')
+	@view_config(route_name='admin_helper_update', renderer='admin_helper_update.mako', permission='checkin')
 	def admin_helper_update(self):
-		return dict(time=time(), items=DBSession.query(Helper).order_by(Helper.away, Helper.dispatched, Helper.firstname).all())
+		return dict(time=time(), logged_in=self.request.authenticated_userid,
+			items=DBSession.query(Helper).order_by(Helper.away, Helper.dispatched, Helper.firstname).all())
 
 
 class AdminEdit(BaseAdminView):
-	@view_config(route_name='admin_day_edit_n', renderer='admin_day_edit.mako')	
-	@view_config(route_name='admin_day_edit_c', renderer='admin_day_edit.mako')	
-	@view_config(route_name='admin_day_edit_nc', renderer='admin_day_edit.mako')	
-	@view_config(route_name='admin_day_edit', renderer='admin_day_edit.mako')	
+	@view_config(route_name='admin_day_edit_n', renderer='admin_day_edit.mako', permission='checkin')	
+	@view_config(route_name='admin_day_edit_c', renderer='admin_day_edit.mako', permission='checkin')	
+	@view_config(route_name='admin_day_edit_nc', renderer='admin_day_edit.mako', permission='checkin')	
+	@view_config(route_name='admin_day_edit', renderer='admin_day_edit.mako', permission='checkin')	
 	def admin_day_edit(self):
 		request = self.request
 		params = request.params
@@ -212,10 +224,10 @@ class AdminEdit(BaseAdminView):
 		oday = md.get("day")
 		if not oday:
 			#error_redirect(self, msg, location, route=True, **kwargs):
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		day = FRIENDLYDAYMAP.get(oday.lower())
 		if not day:
-			self.error_redirect("Bad day.", "home")
+			self.error_redirect("Bad day.", "admin_home")
 		
 		referer = request.referer
 		if (not referer) or (referer == request.current_route_url()):
@@ -233,8 +245,9 @@ class AdminEdit(BaseAdminView):
 			.options(joinedload(Association.person), joinedload(Association.session))\
 			.options(undefer("session._facilities_req"), undefer("session._facilities_got")).order_by(Association.person_id).first()
 		if not item:
-			self.error_redirect("Entry (p%s,s%s) not found." % (pid, sid), "admin_day_list")
+			self.error_redirect("Entry (p%s,s%s) not found. This person was perhaps removed from the session." % (pid, sid), location=came_from, route=False)
 		
+		helpers_show = request.registry.settings["helpers"] == "true"
 		person = item.person
 		session = item.session
 		assocs = session.assoc
@@ -244,51 +257,40 @@ class AdminEdit(BaseAdminView):
 				sid = session.id
 				pid = person.id
 				
-				
-				check = params.getall("registered")
-				print "\n\n\nCHECKED:", check
-				for item in assocs:
-					if str(item.person_id) in check:
-						item.registered = True
-					else:
-						item.registered = False
+				# process register checks
+				self.setAttrIfChangedCheckBox(assocs, "registered")
 						
-				tequip = self.parseStr(params.get('equipment'))
-				tequip_ret = self.parseStr(params.get('equip_returned'))
-				session.equipment = tequip
-				session.equip_returned = tequip_ret
+				# process sport register checks
+				self.setAttrIfChangedCheckBox(assocs, "registered_sport")
+							
+				self.setAttrIfChanged(session, 'equipment', parserMethod=self.parseStr)
+				self.setAttrIfChanged(session, 'equip_returned', parserMethod=self.parseStr)
 				
-				thandout = self.parseEnum('handouts', HandoutType, "day", 
-					day=oday, session=sid, person=pid)
-				session.handouts = thandout
+				self.setAttrIfChanged(session, 'handouts', self.parseEnum, HandoutType)
+				self.setAttrIfChanged(session, 'evaluations', self.parseEnum, HandoutType)
 				
-				teval = self.parseEnum('evaluations', HandoutType, "day", 
-					day=oday, session=sid, person=pid)
-				session.evaluations = teval
+				self.setAttrIfChanged(session, 'other')
+				self.setAttrIfChanged(session, 'comments')
 				
-				session.other = params.get('other')
-				session.comments = params.get('comments')
-				
-				helper = params.get("helper")
-				if helper:
-					try:
-						helper = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None, Helper.id == helper).one()
-						if not helper:
+				if helpers_show:
+					helper = params.get("helper")
+					if helper:
+						try:
+							helper = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None, Helper.id == helper).one()
+							if not helper:
+								error = True
+								self.request.session.flash("Error: Cannot assign Helper. Please select another." )
+							else:
+								helper.session = session
+								helper.returned = None
+								helper.dispatched = time()
+						except (NoResultFound, MultipleResultsFound):
 							error = True
 							self.request.session.flash("Error: Cannot assign Helper. Please select another." )
-						else:
-							helper.session = session
-							helper.returned = None
-							helper.dispatched = time()
-					except (NoResultFound, MultipleResultsFound):
-						error = True
-						self.request.session.flash("Error: Cannot assign Helper. Please select another." )
-				try:
-					DBSession.flush()
-				except DBAPIError as e:
-					log.error(format_exc())
-					self.idErrorRedirect("Database error: %s" % e, "day",
-						session=sid, person=pid)
+				
+				# TODO: attempt to do DB.commit/flush to catch any DB backend errors
+				self.doFlush(location="admin_day_list", day=oday, session=sid, person=pid)
+						
 				anchor = "%s-%s" % (sid, pid)
 				query = (("marker", anchor),)
 				if error:
@@ -313,52 +315,52 @@ class AdminEdit(BaseAdminView):
 			else:
 				return HTTPFound(location=request.route_url('admin_day_list', day=oday, _anchor=anchor, _query=query))
 		
-		helpers = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None).order_by(Helper.away, Helper.returned, Helper.firstname).all()
-		return dict(section=oday, item=item, person=person, session=session, assocs=assocs, name=name, code=code, helpers=helpers)
+		if helpers_show:
+			helpers = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None).order_by(Helper.away, Helper.returned, Helper.firstname).all()
+		else:
+			helpers = None
+		return dict(section=oday, item=item, person=person, session=session, assocs=assocs, name=name, code=code, helpers=helpers, 
+			logged_in=self.request.authenticated_userid, helpers_show=helpers_show)
 		
-	@view_config(route_name='admin_session_new', renderer='admin_session_edit.mako')
-	@view_config(route_name='admin_session_edit', renderer='admin_session_edit.mako')	
+	@view_config(route_name='admin_session_new', renderer='admin_session_edit.mako', permission='checkin')
+	@view_config(route_name='admin_session_edit', renderer='admin_session_edit.mako', permission='checkin')	
 	def admin_session_edit(self):
 		request = self.request
 		params = request.params
 		
-		#item = self.getItemOrFail(CLS, md[param], route, **kwargs)
-		#item = self.getItemOrCreate(Person, 'admin_person_list')
-		item = self.getItemOrCreate(Session, 'admin_session_list')
+		item = self.getItemOrCreate(Session)
 				
 		if 'form.submitted' in params or 'form.remove' in params:
 			if item.id is None:
 				DBSession.add(item)
-		
-			item.firstname = params.get('firstname', u"")
-			item.lastname = params.get('lastname', u"")
 			
-			#item.day = self.parseEnum('day', DayType, "day", id=item.id)
+			self.setAttrIfChanged(item, 'day', self.parseEnum, DayType)
 			
-			item.code = params.get('code', u"")
-			item.title = params.get('sesstitle', u"")
+			self.setAttrIfChanged(item, 'code')
+			self.setAttrIfChanged(item, 'title')
 			
-			item.facilities_req = params.get('facilitiesReq')
-			item.facilities_got = params.get('facilitiesGot')
+			self.setAttrIfChanged(item, 'facilitiesReq')
+			self.setAttrIfChanged(item, 'facilitiesGot')
 			
-			item.location = self.parseStr(params.get('location'))
-			item.loctype = self.parseStr(params.get('loctype'))
+			self.setAttrIfChanged(item, 'building', parserMethod=self.parseStr)
+			self.setAttrIfChanged(item, 'room', parserMethod=self.parseStr)
+			self.setAttrIfChanged(item, 'loctype', parserMethod=self.parseStr)
 			
-			item.other = params.get('other')
-			item.comments = params.get('comments')
+			self.setAttrIfChanged(item, 'other')
+			self.setAttrIfChanged(item, 'comments')
 			
-			item.equipment = self.parseStr(params.get('equipment'))
-			item.equip_returned = self.parseStr(params.get('equip_returned'))
+			self.setAttrIfChanged(item, 'equipment', parserMethod=self.parseStr, strParserMeth=sortstripstring)
+			self.setAttrIfChanged(item, 'equip_returned', parserMethod=self.parseStr, strParserMeth=sortstripstring)
 			
-			item.handouts = self.parseEnum('handouts', HandoutType, "day", id=item.id)
-			item.evaluations = self.parseEnum('evaluations', HandoutType, "day", id=item.id)
+			self.setAttrIfChanged(item, 'handouts', self.parseEnum, HandoutType)
+			self.setAttrIfChanged(item, 'evaluations', self.parseEnum, HandoutType)
 			
 			if 'form.remove' in params:
 				try:
 					remthis = [int(sess) for sess in params.getall("removeperson")]
 				except ValueError as e:
 					self.request.session.flash("Warning: Something bad happened: %s" % e)
-					self.doFlush("person", id=item.id)
+					self.doFlush(item=item)
 					return HTTPFound(location=request.route_url('admin_person_edit', id=item.id))
 				log.debug("\n\nREMOVING: %s\n\n" % remthis)
 				
@@ -368,55 +370,48 @@ class AdminEdit(BaseAdminView):
 				if remthis:
 					self.request.session.flash("Removed: %s" % remthis)
 					
-			try:
-				DBSession.flush()
-			except DBAPIError as e:
-				log.error(format_exc())
-				self.idErrorRedirect("Database error: %s" % e, item.id)
+			self.doFlush(item=item)
 			
 			return HTTPFound(location=request.route_url('admin_session_edit', id=item.id))
 		
-		return dict(section="session", item=item, came_from="")		
+		return dict(section="session", item=item, came_from="", logged_in=self.request.authenticated_userid,)		
 		
-	@view_config(route_name='admin_person_new', renderer='admin_person_edit.mako')
-	@view_config(route_name='admin_person_edit', renderer='admin_person_edit.mako')	
+	@view_config(route_name='admin_person_new', renderer='admin_person_edit.mako', permission='checkin')
+	@view_config(route_name='admin_person_edit', renderer='admin_person_edit.mako', permission='checkin')	
 	def admin_person_edit(self):
 		request = self.request
 		params = request.params
 		
-		#item = self.getItemOrFail(CLS, md[param], route, **kwargs)
-		#item = self.getItemOrCreate(Project, 'admin_project_list')
-		item = self.getItemOrCreate(Person, 'admin_person_list')
+		item = self.getItemOrCreate(Person)
 				
 		if 'form.submitted' in params or 'form.remove' in params:
 			DBSession.add(item)
 		
-			item.firstname = params.get('firstname', u"")
-			item.lastname = params.get('lastname', u"")
+			self.setAttrIfChanged(item, "firstname")
+			self.setAttrIfChanged(item, "lastname")
 			
-			item.phone = self.parseStr(params.get('phone'))
-			item.email = self.parseStr(params.get('email'))
+			self.setAttrIfChanged(item, 'phone', parserMethod=self.parseStr)
+			self.setAttrIfChanged(item, 'email', parserMethod=self.parseStr)
 			
-			# try to attach to session:
-			#def getItem(self, CLS, _id, errloc='admin_home', route=True, polymorphic=False, **kwargs):
-			
-			sesscode = params.get("addsession")
+			# add to session
+			sesscode = self.parseStr("addsession")
 			if sesscode:
-				sesscode = self.parseStr(sesscode)
+				print "\nADDING TO: %s" % sesscode
 				session = None
 				if sesscode: session = DBSession.query(Session).filter(Session.code == sesscode).first()
+				print "SEARCH RES: %s" % session
 				if not session:
 					self.request.session.flash("Warning: Session (%s) not found." % sesscode)
 				else:
 					DBSession.merge(Association(session_id=session.id, person_id=item.id,
-						type=self.parseEnum('type', PersonType, "person", id=item.id)))
+						type=self.parseEnum('type', PersonType)))
 			
 			if 'form.remove' in params:
 				try:
 					remthis = [int(sess) for sess in params.getall("removesess")]
 				except ValueError as e:
 					self.request.session.flash("Warning: Something bad happened: %s" % e)
-					self.doFlush("person", id=item.id)
+					self.doFlush(item=item)
 					return HTTPFound(location=request.route_url('admin_person_edit', id=item.id))
 				log.debug("\n\nREMOVING: %s\n\n" % remthis)
 				
@@ -424,24 +419,22 @@ class AdminEdit(BaseAdminView):
 					DBSession.query(Association).filter(Association.session_id == id, 
 						Association.person_id == item.id).delete()
 				if remthis:
-					self.request.session.flash("Removed: %s" % remthis)
+					self.request.session.flash("Removed session ID(s): %s" % remthis)
 			
-			self.doFlush("person", id=item.id)
+			self.doFlush(item=item)
 				
 			return HTTPFound(location=request.route_url('admin_person_edit', id=item.id))
 		
-		return dict(section="person", item=item, came_from="")
+		return dict(section="person", item=item, came_from="", logged_in=self.request.authenticated_userid,)
 		
 		
-	@view_config(route_name='admin_helper_new', renderer='admin_helper_edit.mako')
-	@view_config(route_name='admin_helper_edit', renderer='admin_helper_edit.mako')	
+	@view_config(route_name='admin_helper_new', renderer='admin_helper_edit.mako', permission='checkin')
+	@view_config(route_name='admin_helper_edit', renderer='admin_helper_edit.mako', permission='checkin')	
 	def admin_helper_edit(self):
 		request = self.request
 		params = request.params
 		
-		#item = self.getItemOrFail(CLS, md[param], route, **kwargs)
-		#item = self.getItemOrCreate(Project, 'admin_project_list')
-		item = self.getItemOrCreate(Helper, 'admin_helper_list')
+		item = self.getItemOrCreate(Helper)
 		
 		referer = request.referer
 		if (not referer) or (referer == request.current_route_url()):
@@ -451,30 +444,33 @@ class AdminEdit(BaseAdminView):
 		if 'form.submitted' in params:
 			DBSession.add(item)
 		
-			item.firstname = params.get('firstname', u"")
-			item.lastname = params.get('lastname', u"")
+			self.setAttrIfChanged(item, "firstname")
+			self.setAttrIfChanged(item, "lastname")
 			
-			item.phone = self.parseStr(params.get('phone'))
+			self.setAttrIfChanged(item, 'phone', parserMethod=self.parseStr)
 			
 			check = params.getall("away")
+			check_orig = params.get("away_orig") == "True"
 			away = True if "True" in check else False
-			if away and not item.away:
-				item.dispatched = time()
-			item.away = away
-			item.comment = params.get('comment', u"")
+			if check_orig != away:
+				if away and not item.away:
+					item.dispatched = time()
+				item.away = away
 			
-			self.doFlush("helper", id=item.id)
+			self.setAttrIfChanged(item, "comment")
+			
+			self.doFlush(item=item)
 				
 			return HTTPFound(location=came_from)
 		
-		return dict(section="helper", item=item, came_from=came_from)
+		return dict(section="helper", item=item, came_from=came_from, logged_in=self.request.authenticated_userid,)
 		
-	@view_config(route_name='admin_helper_returned_list')
+	@view_config(route_name='admin_helper_returned_list', permission='checkin')
 	def admin_helper_returned_list(self):	
 		self.admin_helper_returned()
 		return HTTPFound(location=request.route_url('admin_helper_list'))
 
-	@view_config(route_name='admin_helper_returned')
+	@view_config(route_name='admin_helper_returned', permission='checkin')
 	def admin_helper_returned(self):
 		request = self.request
 		params = request.params
@@ -485,11 +481,9 @@ class AdminEdit(BaseAdminView):
 		else:
 			redirect = request.route_url('admin_helper_update')
 		
-		#item = self.getItemOrFail(CLS, md[param], route, **kwargs)
-		#item = self.getItemOrCreate(Project, 'admin_project_list')
-		item = self.getItem(Helper, request.matchdict['id'], 'admin_helper_update')
+		item = self.getItem(Helper, request.matchdict['id'], errloc=redirect, route=False)
 		if item:
-			#TODO: log stats
+			# log trip data
 			item.returned = time()
 			session = item.session
 			t1 = item.dispatched
@@ -498,19 +492,55 @@ class AdminEdit(BaseAdminView):
 			if item.session:
 				DBSession.add(TripLogger(helper_id=item.id, session_id=session.id, 
 					time_departed=t1, time_returned=t2, code=session.code,
-					building=session.location.split(".",1)[0], time_total=total))
+					building=session.building, time_total=total))
 			item.session = None
 			item.dispatched = None
-			self.doFlush("helper", id=item.id)
+			self.doFlush(item=item)
 					
 		return HTTPFound(location=redirect)
 			
-	
-@view_config(route_name='home', renderer='admin_home.mako')
-def home(request):
-	return dict(section="home")
 
+class AdminDelete(BaseAdminView):
+	@view_config(route_name='admin_del', renderer='admin_del.mako', permission='admin')
+	def admin_del(self):
+		request = self.request
+		params = request.params
+		md = request.matchdict
+		
+		type = CLASSMAPPER.get(request.matchdict.get("type"), "")
+		if not type:
+			self.error_redirect("Type not specified.", "admin_home")
+		item = self.getItemOrFail(type, md.get("id"))
+		
+		if request.referer:
+			came_from = request.referer
+		else:
+			came_from = request.route_url('admin_%s_update' % type.__tablename__, item.id)
+		
+		return dict(section=type.__tablename__.title(), item=item, came_from=came_from, logged_in=self.request.authenticated_userid,)
+		
+	@view_config(route_name='admin_del_4real', permission='admin')
+	def admin_del_4real(self):
+		request = self.request
+		params = request.params
+		md = request.matchdict
+		
+		type = CLASSMAPPER.get(request.matchdict.get("type"), "")
+		if not type:
+			self.error_redirect("Type not specified.", "admin_home")
+		item = self.getItemOrFail(type, md.get("id"))
+		
+		DBSession.delete(item)
+		
+		self.flash("Deleted %s" % item.label())
+		return HTTPFound(location=request.route_url('admin_%s_list' % type.__tablename__,))
 
-@view_config(route_name='admin_special_home', renderer='admin_special_home.mako')
-def special_home(request):
-	return dict(section="home")
+class SplashView(BaseAdminView):
+	@view_config(route_name='admin_home', renderer='admin_home.mako', permission='splash')
+	def home(self):
+		return dict(section="home", logged_in=self.request.authenticated_userid,)
+
+	@view_config(route_name='admin_special_home', renderer='admin_special_home.mako', permission='splash')
+	def special_home(self):
+		return dict(section="home", logged_in=self.request.authenticated_userid,)
+

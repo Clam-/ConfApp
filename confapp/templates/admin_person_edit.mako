@@ -1,76 +1,109 @@
 <%inherit file="admin-base.mako"/>
 <div class="container">
-	<h2>${"Editing" if item.id else "New"} Person</h2>
-
+	<div class="header">
+		<h2><span>${"Editing" if item.id else "New"} Person</span>
+% if item.id:
+		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger pull-right" role="button">Delete ${type(item).__name__}</a>
+% endif
+		</h2>
+	</div>
 	<form class="form-horizontal" action="${request.route_url("admin_person_edit", id=item.id) if item.id else request.route_url("admin_person_new")}" method="post">
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formFirstName">First name:</label>
+			<label class="col-sm-2 control-label" for="formFirstName">First name</label>
 			<div class="col-sm-5">
 				<input class="form-control" type="text" name="firstname" value="${item.firstname}" id="formFirstName"/>
+				<input type="hidden" name="firstname_orig" value="${item.firstname}"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formLastName">Last name:</label>
+			<label class="col-sm-2 control-label" for="formLastName">Last name</label>
 			<div class="col-sm-5">
 				<input class="form-control" type="text" name="lastname" value="${item.lastname}" id="formLastName"/>
+				<input type="hidden" name="lastname_orig" value="${item.lastname}"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formPhone">Phone:</label>
+			<label class="col-sm-2 control-label" for="formPhone">Phone</label>
 			<div class="col-sm-5">
 				<textarea class="form-control" name="phone" rows="2" cols="20" id="formPhone">${item.phone}</textarea>
+				<input type="hidden" name="phone_orig" value="${item.phone}"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formEmail">Email:</label>
+			<label class="col-sm-2 control-label" for="formEmail">Email</label>
 			<div class="col-sm-5">
 				<textarea class="form-control" name="email" rows="2" cols="20" id="formEmail">${item.email}</textarea>
+				<input type="hidden" name="email_orig" value="${item.email}"/>
 			</div>
 		</div>
 
 		<div class="form-group">
 			<div class="col-sm-2 control-label">
 				<input type="hidden" name="came_from" value="${came_from}"/>
-				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save"/>
-			</div>
-		</div>
-
-<% 
-sesslen = len(item.assoc)
-if sesslen < 2:
-	sesslen = 2
-%>		
-		<div class="form-group">
-			<label class="col-sm-2 control-label">Sessions:</label>
-			<div class="col-sm-5">
-% for assoc in item.assoc:
-<% session = assoc.session %>
-				<label>
-					<input type="checkbox" name="removesess" value="${session.id}" />
-					${session.code} - ${assoc.type} - ${session.title}
-				</label>
-% endfor
-			</div>
-		</div>
-		<div class="form-group">
-			<div class="col-sm-2 control-label">
-				<input class="btn btn-danger" type="submit" name="form.remove" value="REMOVE Session(s) selected above"/>
+				<button class="btn btn-primary" type="submit" name="form.submitted">Save</button>
 			</div>
 		</div>
 
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formAddSess">Add session (enter code AND type):</label>
+			<label class="col-sm-2 control-label" for="formAddSess">Add session (enter code AND type)</label>
 			<div class="col-sm-5"><input class="form-control" type="text" name="addsession" value="" id="formAddSess" placeholder="Code"/></div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formAddType">Type:</label>
+			<label class="col-sm-2 control-label" for="formAddType">Type</label>
 			<div class="col-sm-5">${self.selectclslist("type", "", self.attr.PersonType, _class="form-control", _id="formAddType")}</div>
 		</div>
 		
 		<div class="form-group">
 			<div class="col-sm-2 control-label">
 				<input type="hidden" name="came_from" value="${came_from}"/>
-				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save"/>
+				<button class="btn btn-primary" type="submit" name="form.submitted">Add &amp; Save </button>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-sm-2"></div>
+			<div class="col-sm-8 assoc-list">
+				<div class="pad-top"><p><span class="h4">Sessions</span></p></div>
+				<table class="table">
+					<thead class="table-header">
+						<tr>
+							<th><span class="glyphicon glyphicon-trash"><span class="sr-only">Trash</span></span></th>
+							<th>Type</th>
+							<th>Code</th>
+							<th>Building</th>
+							<th>Room</th>
+							<th>Session name</th>
+						</tr>
+					</thead>
+					<tbody>
+<% count = 0 %>
+% for assoc in item.assoc:
+<% 
+session = assoc.session
+
+rowstyle = "row-even" if (count % 2 == 0) else "row-odd"
+
+uurl = request.route_url("admin_session_edit", id=session.id)
+%>
+						<tr class="${rowstyle}">
+							<td><input type="checkbox" name="removesess" value="${session.id}" /></td>
+							<td><a href="${uurl}" class="linkcell">${assoc.type}</a></td>
+							<td><a href="${uurl}" class="linkcell">${session.code}</a></td>
+							<td><a href="${uurl}" class="linkcell">${session.building}</a></td>
+							<td><a href="${uurl}" class="linkcell">${session.room}</a></td>
+							<td><a href="${uurl}" class="linkcell">${session.title}</a></td>
+						</tr>
+<% count += 1 %>\
+% endfor
+					</tbody>
+				</table>
+			</div>
+			<div class="col-sm-2"></div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-sm-2 control-label">
+				<button class="btn btn-danger" type="submit" name="form.remove">Remove Session(s) selected above &amp; Save"</button>
 			</div>
 		</div>
 	</form>

@@ -24,7 +24,7 @@ TIMEFORMAT = "%H:%M:%S"
 			session = item.session
 			btncls = ""
 			timecls = " text-danger"
-			loc = session.location
+			loc = "%s.%s" % (session.building, session.room)
 			if dispatched:
 				itime = time-dispatched
 				longtime = dispatched
@@ -44,24 +44,24 @@ TIMEFORMAT = "%H:%M:%S"
 					itime = time-returned
 					longtime = returned
 					
-		userstyle = "user usereven" if count % 2 == 0 else "user userodd"
+		rowstyle = "row-even" if count % 2 == 0 else "row-odd"
 		comment = item.comment
 	%>
-		<tr>
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}"><abbr title="${item.phone}">${item.firstname}.${item.lastname[:1]}</abbr></a></td>
+		<tr class="${rowstyle}">
+			<td><a href="${uurl}" class="linkcell${timecls}"><abbr title="${item.phone}">${item.firstname}.${item.lastname[:1]}</abbr></a></td>
 % if longtime:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell${timecls}"><abbr title="${strftime(TIMEFORMAT, localtime(longtime))}">${distance_of_time_in_words(itime)}</abbr></a></td>
 % else:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell${timecls}">?</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell${timecls}">?</abbr></a></td>
 % endif
 % if away and comment:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${item.comment}">${loc[:4]}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell"><abbr title="${item.comment}">${loc[:4]}</abbr></a></td>
 % elif away:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell">${loc[:4]}</a></td>
+			<td><a href="${uurl}" class="linkcell">${loc[:4]}</a></td>
 % else:
-			<td class="${userstyle}"><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:4]}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell"><abbr title="${loc}">${loc[:4]}</abbr></a></td>
 % endif
-			<td class="${userstyle}"><a href="#" onclick='helper_returned("${request.route_url("admin_helper_returned", id=item.id)}");return false;' class="btn btn-primary btn-xs${btncls}">${"Ret" if not session else "Ret'd"}</a></td>
+			<td><a href="#" onclick='helper_returned("${request.route_url("admin_helper_returned", id=item.id)}");return false;' class="btn btn-primary btn-xs${btncls}">${"Ret" if not session else "Ret'd"}</a></td>
 		</tr>
 	<%	count += 1 %>
 % endfor
