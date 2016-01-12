@@ -57,6 +57,15 @@ class DummyPage:
 	def pager(self):
 		return ""
 
+def sports_helper(item):
+	if item.session.building == "1": sport = True
+	else: sport = False
+	if sport:
+		sporttick = u"Y" if item.registered_sport else u"N"
+	else:
+		sporttick = ""
+	return sporttick
+
 class AdminListing(BaseAdminView):
 	@view_config(route_name='admin_day_search', renderer='admin_listing.mako', permission='checkin')
 	@view_config(route_name='admin_day_search_n', renderer='admin_listing.mako', permission='checkin')
@@ -95,6 +104,31 @@ class AdminListing(BaseAdminView):
 			options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
 			filter(Session.day == day).order_by(Session.code).all())
 		return dict(section=day, page=page)
+
+	@view_config(route_name='admin_csv_list', renderer='csv', permission='checkin')
+	def admin_csv_list(self):
+		request = self.request
+		items = DBSession.query(Association).join(Association.session, Association.person).\
+			options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
+			order_by(Session.code).all()
+		header = ["Main", "Sports", "First name", "Last name", "E-mail", "Type", "Code", "Session title", "Evals", "Handouts", "Comment"]
+		rows = (
+			(
+				u"Y" if item.registered else u"N",
+				sports_helper(item),
+				item.person.firstname,
+				item.person.lastname,
+				item.person.email.strip().replace("\n", ";") if item.person.email else "",
+				str(item.type),
+				item.session.code,
+				item.session.title,
+				str(item.session.evaluations),
+				str(item.session.handouts),
+				item.session.comments if item.session.comments else "",
+			)
+			for item in items
+		)
+		return dict(header=header, rows=rows)
 		
 	def do_entry_search(self, day, name, code):
 		if not day:

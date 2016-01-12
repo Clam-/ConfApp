@@ -1,18 +1,20 @@
 <%inherit file="admin-special-base.mako"/>
-<div class="maxbig">
+<div class="container-fluid">
+<% day = section.description %>
 	<h2>Registrations for ${section.description}</h2>
 	<table class="table">
 		<thead class="table-header">
 			<tr>
-				<th> Reg&rsquo;d </th>
-				<th> Last name </th>
-				<th> First name </th>
-				<th> Type </th>
-				<th class="code"> Code </th>
-				<th> Session title </th>
-				<th> Evaluations </th>
-				<th> Handouts </th>
-				<th> Comment </th>
+				<th>Mn</th>
+				<th>Sp</th>
+				<th>Last name</th>
+				<th>First name</th>
+				<th>Type</th>
+				<th class="code">Code</th>
+				<th>Session title</th>
+				<th>Evaluations</th>
+				<th>Handouts</th>
+				<th>Comment</th>
 			</tr>
 		</thead>
 <% 
@@ -25,30 +27,53 @@ items = page.items
 		session = item.session
 		person = item.person
 		
-		sessionstyle = "session sessioneven" if count % 2 == 0 else "session sessionodd"
+		session_id = session.id
+		person_id = person.id
+		
+		if session.building == "1": sport = True
+		else: sport = False
+		
+		if marker == "%s-%s" % (session_id, person_id):
+			rowstyle = "row-marker"
+		else:
+			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
 		
 		if session.equipment == session.equip_returned:
-			cellstyle = sessionstyle
+			equipstyle = ""
 		else:
-			cellstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
+			equipstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
 		
-		uurl = request.route_url("admin_day_edit", day=section.description, session=session.id, person=person.id)
+		
+		uurl = request.route_url("admin_day_edit", day=day, session=session_id, person=person_id)
+		
+		comments = session.comments
+		room = session.room
+		other = session.other
 		title = session.title
-	%>
-		<tr>
-			<td class="table-cell-reg ${sessionstyle}">${u"\u2714" if item.registered else ""}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${item.type}</a></td>
 
-			<td class="${sessionstyle} code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
-			<td class="${sessionstyle}"><a href="${uurl}" class="linkcell">${session.comments}</a></td>
+		if sport:
+			sporttick = u"\u2714" if item.registered_sport else u"\u2717"
+		else:
+			sporttick = "-"
+	%>
+		<tr class="${rowstyle}">
+			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered else "text-muted"}">${u"\u2714" if item.registered else u"\u2717"}</a></td>
+% if sport:
+			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered_sport else "text-muted"}">${sporttick}</a></td>
+% else:
+			<td><a href="${uurl}" class="linkcell text-muted"></a></td>
+% endif
+			<td><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
+			<td><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
+			<td><a href="${uurl}" class="linkcell">${str(item.type)[:4]}</a></td>
+
+			<td><a href="${uurl}" class="linkcell">${session.code}</a></td>
+			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.comments}</a></td>
 		</tr>
 	<%	count += 1 %>
 % endfor
 	</table>
-	<p>Page: ${page.pager()}</p>
 </div>

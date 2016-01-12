@@ -60,6 +60,7 @@ def main(global_config, **settings):
 	
 	config.add_route('admin_special_list', '/special/{day}/')
 	config.add_route('admin_special_home', '/special/')
+	config.add_route('admin_csv_list', '/csv/')
 	config.add_route('admin_day_list', '/{day}/')
 	
 	config.add_route('admin_day_search', '/{day}/search/{code}/{name}')
@@ -72,4 +73,6 @@ def main(global_config, **settings):
 	config.add_route('admin_day_edit_nc', '/{day}/{person}/{session}/{code}/{name}')
 	
 	config.scan()
+	
+	config.add_renderer(name='csv', factory='confapp.renderers.CSVRenderer')
 	return config.make_wsgi_app()

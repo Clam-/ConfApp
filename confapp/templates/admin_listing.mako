@@ -23,7 +23,7 @@
 		<thead class="table-header">
 			<tr>
 				<th><abbr title="Main check-in">Mn</abbr></th>
-				<th><abbr title="Sports Centre check-in">Sp</abbr>
+				<th><abbr title="Sports Centre check-in">Sp</abbr></th>
 				<th>Last name</th>
 				<th>First name</th>
 				<th>Type</th>
@@ -61,6 +61,7 @@ sport = False
 		person_id = person.id
 		
 		if session.building == "1": sport = True
+		else: sport = False
 		
 		if marker == "%s-%s" % (session_id, person_id):
 			rowstyle = "row-marker"
@@ -85,8 +86,8 @@ sport = False
 		room = session.room
 		other = session.other
 		title = session.title
-		
-		if session.building == "1":
+
+		if sport:
 			sporttick = u"\u2714" if item.registered_sport else u"\u2717"
 		else:
 			sporttick = "-"
