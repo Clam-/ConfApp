@@ -31,3 +31,4 @@ rm ConfApp.sqlite
 ~/env/bin/python confapp/scripts/csvProcess2016Venue.py development.ini ~/ConfApp-files/2016/venue.csv
 ~/env/bin/python confapp/scripts/csvProcess2016People.py development.ini ~/ConfApp-files/2016/presenters.csv ~/ConfApp-files/2016/registrations.csv
 ~/env/bin/python confapp/scripts/csvProcess2016Host.py development.ini ~/ConfApp-files/2016/hosts.csv
+~/env/bin/uwsgi --ini-paste development.ini
