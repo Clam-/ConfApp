@@ -22,7 +22,7 @@
 				<th> Building.room </th>
 				<th> Eq Out </th>
 				<th> Eq In </th>
-				<th> Handouts </th>
+				<th> <a href="${request.route_url("admin_session_list", _query={"sort":"handouts"})}">Handouts</a> </th>
 				<th> Evaluations </th>
 				<th> Other </th>
 				<th> Comment </th>
@@ -44,8 +44,12 @@
 	%>
 		<tr class="${rowstyle}">
 			<td><a href="${surl}" class="linkcell">${item.code}</a></td>
-			<td><a href="${surl}" class="linkcell">${item.title}</a></td>
-			<td><a href="${surl}" class="linkcell"><strong>${item.building}.</strong>${item.room}</a></td>
+			<td><a href="${surl}" class="linkcell">${"<s>" if item.cancelled else "" | n}${item.title}${"</s>" if item.cancelled else "" | n}</a></td>
+% if item.room:
+			<td><a href="${surl}" class="linkcell"><strong>${item.room.building.number}</strong>.${item.room.name}</a></td>
+% else:
+			<td><a href="${surl}" class="linkcell"><strong></strong>.</a></td>
+% endif
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equip_returned}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.handouts}</a></td>

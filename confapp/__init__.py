@@ -56,6 +56,19 @@ def main(global_config, **settings):
 	config.add_route('admin_session_edit', '/session/edit/{id}')
 	config.add_route('admin_session_list', '/session/')
 	
+	config.add_route('admin_user_new', '/user/edit/')
+	config.add_route('admin_user_edit', '/user/edit/{id}')
+	config.add_route('admin_user_list', '/user/')
+	
+	config.add_route('nuke_go', '/nuke', request_method="POST")
+	config.add_route('nuke', '/nuke')
+	config.add_route('admin_admin', '/admin')
+	config.add_route('upload', '/upload', request_method="POST")
+	
+	config.add_route('admin_room_new', '/location/edit/')
+	config.add_route('admin_room_edit', '/location/edit/{id}')
+	config.add_route('admin_room_list', '/location/')
+	
 	config.add_route('admin_times', '/TIMES/')
 	
 	config.add_route('admin_special_list', '/special/{day}/')

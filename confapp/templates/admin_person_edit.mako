@@ -1,8 +1,9 @@
-<%inherit file="admin-base.mako"/>
+<%inherit file="admin-base.mako"/>\
+<%page args="mainen, sporten, admin"/>\
 <div class="container">
 	<div class="header">
 		<h2><span>${"Editing" if item.id else "New"} Person</span>
-% if item.id:
+% if item.id and admin:
 		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger pull-right" role="button">Delete ${type(item).__name__}</a>
 % endif
 		</h2>
@@ -34,6 +35,27 @@
 			<div class="col-sm-5">
 				<textarea class="form-control" name="email" rows="2" cols="20" id="formEmail">${item.email}</textarea>
 				<input type="hidden" name="email_orig" value="${item.email}"/>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-2 control-label" for="formShirt">Shirt</label>
+			<div class="col-sm-2">
+				<span class="form-control" id="formShirt" readonly="readonly">${"Eligible" if item.shirt else "Ineligible"}</span>
+			</div>
+			<label class="col-sm-1 control-label" for="formShirtCollect">Collected</label>
+			<div class="col-sm-1">
+% if item.shirt:
+%  if mainen:
+				<input type="checkbox" id="formShirtCollect" name="shirtcollect" value="${item.id}" ${'checked="checked"' if item.shirtcollect else ""} />
+				<input type="hidden" name="shirtcollect_orig" value="${",".join([str(item.id)] if item.shirtcollect else [])}"/>
+%	else:
+				${u"\u2714" if item.shirtcollect else u"\u2717"}
+%   endif
+% endif
+			</div>
+			<label class="col-sm-1 control-label" for="formShirtSize">Size</label>
+			<div class="col-sm-2">
+				<span class="form-control" id="formShirtSize" readonly="readonly">${item.shirtsize}</span>
 			</div>
 		</div>
 
@@ -70,8 +92,6 @@
 							<th><span class="glyphicon glyphicon-trash"><span class="sr-only">Trash</span></span></th>
 							<th>Type</th>
 							<th>Code</th>
-							<th>Building</th>
-							<th>Room</th>
 							<th>Session name</th>
 						</tr>
 					</thead>
@@ -89,9 +109,7 @@ uurl = request.route_url("admin_session_edit", id=session.id)
 							<td><input type="checkbox" name="removesess" value="${session.id}" /></td>
 							<td><a href="${uurl}" class="linkcell">${assoc.type}</a></td>
 							<td><a href="${uurl}" class="linkcell">${session.code}</a></td>
-							<td><a href="${uurl}" class="linkcell">${session.building}</a></td>
-							<td><a href="${uurl}" class="linkcell">${session.room}</a></td>
-							<td><a href="${uurl}" class="linkcell">${session.title}</a></td>
+							<td><a href="${uurl}" class="linkcell">${"<s>" if session.cancelled else "" | n}${session.title}${"</s>" if session.cancelled else "" | n}</a></td>
 						</tr>
 <% count += 1 %>\
 % endfor
@@ -100,11 +118,12 @@ uurl = request.route_url("admin_session_edit", id=session.id)
 			</div>
 			<div class="col-sm-2"></div>
 		</div>
-
+% if admin:
 		<div class="form-group">
 			<div class="col-sm-2 control-label">
 				<button class="btn btn-danger" type="submit" name="form.remove">Remove Session(s) selected above &amp; Save"</button>
 			</div>
 		</div>
+% endif
 	</form>
 </div>

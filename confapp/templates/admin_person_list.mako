@@ -24,6 +24,9 @@
 				<th> ID </th>
 				<th> Last name </th>
 				<th> First name </th>
+				<th> Shirt </th>
+				<th> S.Pickup </th>
+				<th> S.Size </th>
 				<th> Phone </th>
 				<th> Email </th>
 			</tr>
@@ -42,6 +45,13 @@
 			<td><a href="${uurl}" class="linkcell">${item.id}</a></td>
 			<td><a href="${uurl}" class="linkcell">${item.lastname}</a></td>
 			<td><a href="${uurl}" class="linkcell">${item.firstname}</a></td>
+			<td><a href="${uurl}" class="linkcell">${u"\u2714" if item.shirt else u"\u2717"}
+% if item.shirt:
+			<td><a href="${uurl}" class="linkcell ${"text-success" if item.shirtcollect else ""}">${u"\u2714" if item.shirtcollect else u"\u2717"}</a></td>
+% else:
+			<td><a href="${uurl}" class="linkcell"></a></td>
+% endif
+			<td><a href="${uurl}" class="linkcell">${item.shirtsize}
 			<td><a href="${uurl}" class="linkcell">${item.phone.replace("\n"," | ") if item.phone else ""}</a></td>
 			<td><a href="${uurl}" class="linkcell">${item.email.replace("\n",";") if item.email else ""}</a></td>
 			

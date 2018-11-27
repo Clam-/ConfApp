@@ -3,6 +3,12 @@ from confapp.models import (
 	DayType,
 	HandoutType,
 	PersonType,
+	UserRole,
+	)
+from confapp.security import (
+	checkAdmin,
+	checkSport,
+	checkMain,
 	)
 %>\
 <%def name="selectclslist(name, attr, cls, _class=None, _id=None)">\
@@ -32,6 +38,11 @@ from confapp.models import (
 % endfor
 </select>\
 </%def>\
+<%
+mainen = checkMain(request.effective_principals)
+sporten = checkSport(request.effective_principals)
+admin = checkAdmin(request.effective_principals)
+%>\
 <!DOCTYPE html> 
 <html>
 <head> 
@@ -60,6 +71,9 @@ function() {
 			$( this ).toggleClass( "row-hover" );
 		}
 	);
+	$('.utcdate').text(function(i,oldtext){
+		return new Date( oldtext.concat("Z") ).toLocaleString();
+	});
 });
 </script>
 </head> 
@@ -81,23 +95,27 @@ function() {
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 % for type in DayType:
-%	if section == type:
-					<li class="active"><a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a></li>
-%	else:
-					<li><a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a></li>
-%	endif
+					<li class="${"active" if section == type else ""}">
+						<a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a>
+					</li>
 % endfor
-% for thing in ("person", "session"):
-%	if section == thing:
-					<li class="active"><a href="${request.route_url("admin_%s_list" % thing)}">${thing.capitalize()}</a></li>
-% 	else:
-					<li><a href="${request.route_url("admin_%s_list" % thing)}">${thing.capitalize()}</a></li>
-%	endif
+% for thing in ("person", "session", "room"):
+					<li class="${"active" if request.matched_route.name.startswith("admin_%s_") else ""}">
+						<a href="${request.route_url("admin_%s_list" % thing)}">${thing.capitalize()}</a>
+					</li>
 % endfor
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-% if logged_in:
-					<li><p class="navbar-text">${logged_in}</p></li>
+% if UserRole.superadmin in request.effective_principals:
+					<li class="${"active" if request.matched_route.name.startswith("admin_user_") else ""}">
+						<a href="${request.route_url("admin_user_list")}">Users</a>
+					</li>
+					<li class="nav-item ${"active" if request.matched_route.name.startswith == "admin_admin" else ""}">
+						<a class="nav-link" href="${request.route_url("admin_admin")}">Admin</a>
+					</li>
+% endif
+% if request.authenticated_userid:
+					<li><p class="navbar-text">${request.authenticated_userid}</p></li>
 					<li ><span><a href="${request.route_url("logout")}" class="btn btn-info navbar-btn" role="button">Logout</a></span></li>
 % else:
 					<li ><span><a href="${request.route_url("login")}" class="btn btn-info navbar-btn" role="button">Log in</a></span></li>
@@ -117,7 +135,7 @@ function() {
 	</ul>
 </div>
 % endif
-${next.body()}
+${next.body(mainen=mainen, sporten=sporten, admin=admin)}
 <footer class="footer">
 	<div class="container">
         <p class="text-muted pad-top">Some icons provided by <a href="http://glyphicons.com/">GLYPHICONS</a></p>

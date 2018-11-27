@@ -60,7 +60,7 @@ sport = False
 		session_id = session.id
 		person_id = person.id
 		
-		if session.building == "1": sport = True
+		if session.room and (session.room.building.number == "1"): sport = True # or session.room.building.number == "60"
 		else: sport = False
 		
 		if marker == "%s-%s" % (session_id, person_id):
@@ -105,10 +105,10 @@ sport = False
 
 			<td class="code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
 			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
-% if len(room) < 16:
-			<td><a href="${uurl}" class="linkcell"><strong>${session.building}.</strong>${room}</a></td>
+% if room:
+			<td><a href="${uurl}" class="linkcell"><strong>${room.building.number}.</strong>${room.name}</a></td>
 % else:
-			<td><a href="${uurl}" class="linkcell"><strong>${session.building}.</strong><abbr title="${room}">${room[:15]+u"\u2026"}</abbr></a></td>
+			<td><a href="${uurl}" class="linkcell"><strong>Oops.</strong><abbr title=""></abbr></a></td>
 % endif
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>

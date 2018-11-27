@@ -1,8 +1,9 @@
-<%inherit file="admin-base.mako"/>
+<%inherit file="admin-base.mako"/>\
+<%page args="mainen, sporten, admin"/>\
 <div class="container">
 	<div class="header">
-		<h2><span>${"Editing" if item.id else "New"} Session</span>
-% if item.id:
+		<h2><span>${"Editing" if item.id else "New"} Session ${"CANCELLED" if item.cancelled else ""}</span>
+% if item.id and admin:
 		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger pull-right" role="button">Delete ${type(item).__name__}</a>
 % endif
 		</h2>
@@ -12,36 +13,31 @@
 		<div class="form-group">
 			<label class="col-sm-1 control-label" for="formCode">Code</label>
 			<div class="col-sm-1">
-				<input class="form-control" type="text" name="code" value="${item.code}" id="formCode"/>
+				<input class="form-control" type="text" name="code" value="${item.code}" id="formCode" ${'readonly="readonly"' if not admin else ""} />
 				<input type="hidden" name="code_orig" value="${item.code}"/>
 			</div>
 			<label class="col-sm-1 control-label" for="formDay">Day</label>
 			<div class="col-sm-2">
 				${self.selectclslist("day", item.day, self.attr.DayType, _class="form-control", _id="formDay")}
-				<input type="hidden" name="day_orig" value="${item.day.value}"/>
+				<input type="hidden" name="day_orig" value="${item.day.value if item.day else ""}"/>
 			</div>
 			<label class="col-sm-2 control-label" for="formSessionTitle">Session title</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="title" value="${item.title}" id="formSessionTitle"/>
+				<input class="form-control" type="text" name="title" value="${item.title}" id="formSessionTitle" ${'readonly="readonly"' if not admin else ""}/>
 				<input type="hidden" name="title_orig" value="${item.title}"/>
 			</div>
 		</div>
 	
 		<div class="form-group">
-			<label class="col-sm-1 control-label" for="formBuilding">Building</label>
+			<label class="col-sm-1 control-label" for="formBuilding">Building No.</label>
 			<div class="col-sm-1">
-				<input class="form-control" type="text" name="building" value="${item.building}" id="formBuilding"/>
-				<input type="hidden" name="building_orig" value="${item.building}"/>
+				<input class="form-control" type="text" name="building" value="${item.room.building.number if item.room else ""}" id="formBuilding" ${'readonly="readonly"' if not admin else ""}/>
+				<input type="hidden" name="building_orig" value="${item.room.building.number if item.room else ""}"/>
 			</div>
 			<label class="col-sm-1 control-label" for="formRoom">Room</label>
 			<div class="col-sm-4">
-				<input class="form-control" type="text" name="room" value="${item.room}" id="formRoom"/>
-				<input type="hidden" name="room_orig" value="${item.room}"/>
-			</div>
-			<label class="col-sm-2 control-label" for="formLocType">Location Type</label>
-			<div class="col-sm-3">
-				<input class="form-control" type="text" name="loctype" value="${item.loctype}" id="formLocType"/>
-				<input type="hidden" name="loctype_orig" value="${item.loctype}"/>
+				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" ${'readonly="readonly"' if not admin else ""}/>
+				<input type="hidden" name="room_orig" value="${item.room.name if item.room else ""}"/>
 			</div>
 		</div>
 
@@ -154,6 +150,8 @@ uurl = request.route_url("admin_person_edit", id=person.id)
 			</div>
 			<div class="col-sm-2"></div>
 		</div>		
+% if admin:
 		<button type="submit" class="btn btn-danger" name="form.remove">REMOVE Person(s) selected above &amp; Save</button>
+% endif
 	</form>
 </li>

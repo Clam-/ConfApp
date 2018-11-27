@@ -1,5 +1,28 @@
 from datetime import timedelta
 from time import time
+from tempfile import NamedTemporaryFile
+from shutil import copyfileobj
+
+from backports.csv import reader
+from io import open as iopen, TextIOWrapper, BufferedRandom
+from re import compile as recompile
+
+CODE = recompile("[A-Z][0-3][0-9]")
+CODE2 = recompile("FP0[0-6]")
+
+
+def read_csv(fname):
+	with iopen(fname, newline='', encoding='utf-8-sig') as f:
+		for row in reader(f):
+			yield row
+
+
+def convertfile(fp):
+	f = NamedTemporaryFile(delete=False)
+	fp.seek(0)
+	copyfileobj(fp, f)
+	return f.name
+
 
 #distance_of_time_in_words delta=seconds
 def distance_of_time_in_words(delta):

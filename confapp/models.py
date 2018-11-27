@@ -22,27 +22,19 @@ from sqlalchemy.orm import (
 	relationship,
 	deferred,
 	backref,
+	synonym,
 	)
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from pyramid.security import (
-    Allow,
-    Everyone,
-    )
+from cryptacular.bcrypt import BCRYPTPasswordManager
 
-class RootFactory(object):
-	__acl__ = [
-		(Allow, 'group:checkin', 'checkin'),
-		(Allow, 'group:admin', 'checkin'),
-		(Allow, 'group:admin', 'admin'),
-		(Allow, Everyone, 'splash'),
-		# COMMENT OUT THE BELOW POST TESTING
-		#~ (Allow, Everyone, 'admin'),
-		#~ (Allow, Everyone, 'checkin'),
-	]
-	def __init__(self, request):
-		pass
+from pyramid.security import (
+	Allow,
+	Everyone,
+	Authenticated,
+	ALL_PERMISSIONS,
+	)
 
 from confapp.libs.declenum import DeclEnum
 
@@ -64,6 +56,11 @@ class Base(object):
 	
 Base = declarative_base(cls=Base)
 
+class PrefDayType(DeclEnum):
+	thursday = "T", "Thursday"
+	friday = "F", "Friday"
+	either = "E", "Either"
+	
 class DayType(DeclEnum):
 	thursday = "T", "Thursday"
 	friday = "F", "Friday"
@@ -78,6 +75,16 @@ class PersonType(DeclEnum):
 	presenter = "P", "Presenter"
 	copresenter = "C", "CoPresent"
 	other = "O", "Other"
+	submitter = "S", "Submitter"
+	
+class PersonTitle(DeclEnum):
+	mr = "m", "Mr"
+	mrs = "r", "Mrs"
+	ms = "s", "Ms"
+	miss = "i", "Miss"
+	dr = "d", "Dr"
+	prof = "p", "Prof"
+	aprof = "a", "A/Prof"
 
 class HandoutType(DeclEnum):
 	na = "N", "N/A"
@@ -90,6 +97,38 @@ class HandoutSaidType(DeclEnum):
 	na = "N", "N/A"
 	pending = "A", "ACHPER to copy"
 	handedout = "W", "Self provide"
+	
+class UserRole(DeclEnum):
+	superadmin = "Z", "Super Admin"
+	main = "M", "Main Check-in"
+	sports = "S", "Sports Check-in"
+	admin = "A", "Backend Admin"
+	none = "N", "None"
+	
+class SessionType(DeclEnum):
+	lecture = "L", "Lecture"
+	workshopprac = "X", "Workshop - Practical"
+	workshop = "W", "Workshop"
+	practical = "P", "Practical"
+	na = "N", "N/A"
+
+class AudienceType(DeclEnum):
+	pri = "P", "Primary"
+	sec = "S", "Secondary"
+	f10 = "F", "F-10"
+	vce = "V", "VCE"
+	
+class FocusArea(DeclEnum):
+	hpeh = "H", "HPE; Health Strand"
+	hpem = "M", "HPE; Movement Strand"
+	sport = "S", "Sport"
+	outed = "O", "Outdoor Education"
+	ict = "I", "ICT in HPE"
+	vcepe = "V", "VCE Physical Education"
+	vcehhd = "D", "VCE Health and Human Development"
+	vceoes = "E", "VCE Outdoor and Environmental Studies"
+	vcevet = "T", "VCE VET Sport and Recreation"
+	
 
 def sortstripstring(s):
 	if not s: return s
@@ -97,12 +136,53 @@ def sortstripstring(s):
 	items.sort()
 	return ",".join(items)
 
+# Borrowed some snippets from https://github.com/Pylons/shootout/blob/master/shootout/models.py
+crypt = BCRYPTPasswordManager()
+def hash_password(password):
+	return crypt.encode(password)
+
+class User(Base):
+	username = Column(Unicode(20), unique=True)
+	name = Column(Unicode(50))
+	_password = Column('password', String(60))
+	
+	def _get_password(self):
+		return self._password
+	def _set_password(self, password):
+		self._password = hash_password(password)
+	password = property(_get_password, _set_password)
+	password = synonym('_password', descriptor=password)
+	
+	lastseen = Column(DateTime, nullable=True)
+	role = Column(UserRole.db_type(), default=UserRole.none, nullable=False)
+
+	@classmethod
+	def get_by_username(cls, username):
+		return DBSession.query(cls).filter(cls.username == username).first()
+	@classmethod
+	def check_password(cls, username, password):
+		user = cls.get_by_username(username)
+		if not user: return False
+		if not user.password: return False
+		return crypt.check(user.password, password)
+		
+	def label(self):
+		return "User: %s" % (self.username)
+		
 class Person(Base):	
 	lastname = Column(Unicode(100))
 	firstname = Column(Unicode(100))
+	organisation = Column(Unicode)
 	
 	phone = Column(String(100))
 	email = Column(String(100))
+	
+	twitter = Column(String(20))
+	bio = Column(Unicode)
+	
+	shirt = Column(Boolean)
+	shirtcollect = Column(Boolean)
+	shirtsize = Column(String(30))
 	
 	assoc = relationship("Association", backref="person", cascade="save-update, merge, delete")
 	
@@ -114,7 +194,7 @@ class Person(Base):
 #person<->session association
 class Association(Base):
 	id = None
-	person_id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+	person_id = Column(Integer, ForeignKey('person.id'), primary_key=True, autoincrement=False)
 	session_id = Column(Integer, ForeignKey('session.id'), primary_key=True)
 	type = Column(PersonType.db_type(), nullable=False)
 	registered = Column(Boolean)
@@ -125,15 +205,22 @@ class Association(Base):
 	_repr_attrs = ["person_id", "session_id"]
 
 class Session(Base):
-	code = Column(Unicode(10), index=True, unique=True, nullable=False)
-	title = Column(Unicode(50))
+	code = Column(Unicode(10), index=True, unique=True, nullable=True)
+	cancelled = Column(Boolean, index=True)
+	title = Column(Unicode(100))
 	
-	day = Column(DayType.db_type(), nullable=False, index=True)
+	submissionID = Column(Integer)
 	
-	building = Column(String(40), default="")
-	room = Column(String(40), default="")
-	address = Column(String(40))
-	loctype = Column(String(40))
+	day = Column(DayType.db_type(), nullable=True, index=True)
+	
+	daypref = Column(PrefDayType.db_type())
+	abstract = Column(Unicode)
+	
+	sessiontype = Column(SessionType.db_type(), nullable=False)
+	keyaudience = relationship("SessionAudience", cascade="save-update, merge, delete")
+	focusareas = relationship("SessionFocusArea", cascade="save-update, merge, delete")
+	
+	commercial = Column(Boolean, default=False)
 	
 	_facilities_req = deferred(Column(UnicodeText))
 	_facilities_got = deferred(Column(UnicodeText))
@@ -148,6 +235,12 @@ class Session(Base):
 	other = Column(Unicode(200))
 	comments = Column(Unicode(200))
 	
+	booked = Column(Integer)
+	max = Column(Integer)
+	
+	room_id = Column(Integer, ForeignKey('room.id'))
+	room = relationship("Room", backref=backref('sessions', order_by=code), lazy='joined')
+	
 	_repr_attrs = ["code", "title"]
 	
 	assoc = relationship("Association", backref="session", cascade="save-update, merge, delete")
@@ -156,8 +249,6 @@ class Session(Base):
 		self.handouts = HandoutType.na
 		self.handouts_said = HandoutSaidType.na
 		self.evaluations = HandoutType.na
-		self.building = ""
-		self.room = ""
 		for key in kwargs:
 			setattr(self, key, kwargs[key])
 	
@@ -182,6 +273,7 @@ class Session(Base):
 		
 	@property
 	def equipment(self):
+		if self._equipment is None: return ""
 		return self._equipment
 	@equipment.setter
 	def equipment(self, value):
@@ -190,12 +282,34 @@ class Session(Base):
 		
 	@property
 	def equip_returned(self):
+		if self._equip_returned is None: return ""
 		return self._equip_returned
 	@equip_returned.setter
 	def equip_returned(self, value):
 		#sort and stuff
 		self._equip_returned = sortstripstring(value)
 
+class SessionAudience(Base):
+	session_id = Column(Integer, ForeignKey('session.id'))
+	audience = Column(AudienceType.db_type())
+	
+class SessionFocusArea(Base):
+	session_id = Column(Integer, ForeignKey('session.id'))
+	focusarea = Column(FocusArea.db_type())
+
+class Building(Base):
+	name = Column(String(50))
+	number = Column(String(20))
+	address = Column(String(100))
+	
+	rooms = relationship("Room", backref="building", lazy='joined')
+
+class Room(Base):
+	name = Column(String(50))
+	room = Column(String(20))
+	capacity = Column(Integer)
+	
+	building_id = Column(Integer, ForeignKey('building.id'))
 
 class Helper(Base):
 	lastname = Column(Unicode(100))
@@ -235,10 +349,31 @@ CLASSMAPPER = {
 	Person.__tablename__ : Person,
 	Session.__tablename__ : Session,
 	Helper.__tablename__ : Helper,
+	User.__tablename__ : User,
 }
 #Index('idx_name1', "session.day", "person.lastname", "person.firstname")
 #Index('idx_name2', "session.day", "person.firstname", "person.lastname")
 #Index('idx_code', "session.day", "session.code")
 #Index('idx_assoc', "session_id", "person_id")
 #Index('idx_equip', "entry.equipment", "entry.equip_returned")
+
+class RootFactory(object):
+	__acl__ = [
+		(Allow, UserRole.superadmin, ALL_PERMISSIONS),
+		(Allow, UserRole.admin, 'admin'),
+		(Allow, Authenticated, 'checkin'),
+		(Allow, Everyone, 'splash'),
+		# COMMENT OUT THE BELOW POST TESTING
+		#~ (Allow, Everyone, 'admin'),
+		#~ (Allow, Everyone, 'checkin'),
+	]
+	def __init__(self, request):
+		self.request = request
+
+
+def decenumReverseMap(t, s, debug=False):
+	for x in t:
+		if debug: print repr(x.description), repr(s)
+		if x.description == s:
+			return x
 

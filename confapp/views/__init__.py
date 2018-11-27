@@ -16,6 +16,7 @@ from sqlalchemy.exc import DBAPIError
 
 from confapp.models import (
 	DBSession,
+	User,
 	)
 
 from webhelpers.paginate import PageURL_WebOb, Page
@@ -23,7 +24,6 @@ from webhelpers.paginate import PageURL_WebOb, Page
 from pyramid.security import (
     remember,
     forget,
-    authenticated_userid,
     )
 
 from pyramid.view import (
@@ -31,14 +31,13 @@ from pyramid.view import (
 	forbidden_view_config,
 	)
 
-from confapp.security import USERS
-
 class BaseView(object):
 	section = ""
 	def __init__(self, request):
 		self.request = request
 		self.errors = False
-		self.logged_in = authenticated_userid(request)		
+		if request.authenticated_userid:
+			DBSession.query(User).filter(User.username == request.authenticated_userid).first().lastseen = datetime.utcnow()
 
 class BaseAdminView(BaseView):
 	def error_redirect(self, msg, location='admin_home', route=True, **kwargs):
@@ -162,7 +161,7 @@ class BaseAdminView(BaseView):
 				if val != params[param+"_orig"]:
 					setattr(item, param, val)
 				
-	def setAttrIfChangedCheckBox(self, assocs, param):
+	def setAttrIfChangedCheckBox(self, assocs, param, person=False):
 		params = self.request.params
 		check = params.getall(param)
 		print "\nCHECKING %s\n" % param
@@ -177,9 +176,11 @@ class BaseAdminView(BaseView):
 			if spid in check_diff:
 				print "MODDING: %s" % spid
 				if spid in check:
-					setattr(item, param, True)
+					if person: setattr(item.person, param, True)
+					else: setattr(item, param, True)
 				else:
-					setattr(item, param, False)
+					if person: setattr(item.person, param, False)
+					else: setattr(item, param, False)
 
 class LoginOutView(BaseView):
 	# http://docs.pylonsproject.org/projects/pyramid/en/1.3-branch/tutorials/wiki2/authorization.html
@@ -198,7 +199,7 @@ class LoginOutView(BaseView):
 		if 'form.submitted' in request.params:
 			username = request.params['username']
 			password = request.params['password']
-			if USERS.get(username) == password:
+			if password and User.check_password(username, password):
 				headers = remember(request, username)
 				return HTTPFound(location = came_from,
 					headers = headers)

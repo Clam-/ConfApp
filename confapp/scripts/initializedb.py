@@ -14,6 +14,8 @@ from pyramid.scripts.common import parse_vars
 from ..models import (
 	DBSession,
 	Base,
+	User,
+	UserRole,
 	)
 
 
@@ -35,6 +37,7 @@ def main(argv=sys.argv):
 	DBSession.configure(bind=engine)
 	Base.metadata.create_all(engine)
 
-	#~ with transaction.manager:
-		#~ model = MyModel(name='one', value=1)
-		#~ DBSession.add(model)
+	with transaction.manager:
+		root = User(username=u'root', role=UserRole.superadmin)
+		root.password = "superRoot12"
+		DBSession.add(root)
