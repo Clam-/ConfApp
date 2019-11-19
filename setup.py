@@ -9,6 +9,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = [
+    'bcrypt',
 	'pyramid',
 	'pyramid_mako',
 	'pyramid_debugtoolbar',
@@ -17,7 +18,10 @@ requires = [
 	'transaction',
 	'zope.sqlalchemy',
 	'waitress',
-	'webhelpers',
+    'PasteScript',
+    'unicodecsv',
+    'paginate==0.5.6', # pagination helpers
+    'paginate_sqlalchemy==0.3.0',
 	]
 
 setup(name='ConfApp',

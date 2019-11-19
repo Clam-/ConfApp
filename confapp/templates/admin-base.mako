@@ -17,11 +17,11 @@ from confapp.security import (
 % else:
 <select name="${name}">\
 % endif
-% for key, description in cls:
-%	if attr == cls.from_string(key):
-<option value="${key}" selected="selected">${description}</option>\
+% for item in cls:
+%	if attr == cls(item.value):
+<option value="${item.value}" selected="selected">${item.name}</option>\
 % 	else:
-<option value="${key}">${description}</option>\
+<option value="${item.value}">${item.name}</option>\
 %	endif
 % endfor
 </select>\
@@ -43,26 +43,26 @@ mainen = checkMain(request.effective_principals)
 sporten = checkSport(request.effective_principals)
 admin = checkAdmin(request.effective_principals)
 %>\
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
-<head> 
+<head>
 	<meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-	
+
 	<title>Registration - ${section}</title>
 	<!-- Bootstrap -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
 		integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
 	<!-- ConfApp css -->
 	<link href="/files/css/confapp.css" rel="stylesheet" />
 	<!-- More bootstrap, etc -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" 
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"
 		integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous">
 	</script>
 	<script type="text/javascript">
-$( document ).ready( 
+$( document ).ready(
 function() {
 	$("tbody>tr").hover(
 		function() {
@@ -76,8 +76,8 @@ function() {
 	});
 });
 </script>
-</head> 
-<body> 
+</head>
+<body>
 	<nav class="navbar navbar-default">
 		<div class="container-fluid">
 			<!-- group main collapsable button and title together for better display -->
@@ -90,13 +90,13 @@ function() {
 			  </button>
 			  <a class="navbar-brand" href="${request.route_url("admin_home")}">Presenter DB</a>
 			</div>
-			
+
 			<!-- Collapsable other items -->
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 % for type in DayType:
 					<li class="${"active" if section == type else ""}">
-						<a href="${request.route_url("admin_day_list", day=type.description)}">${type}</a>
+						<a href="${request.route_url("admin_day_list", day=type.name)}">${type.name}</a>
 					</li>
 % endfor
 % for thing in ("person", "session", "room"):
@@ -106,7 +106,7 @@ function() {
 % endfor
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-% if UserRole.superadmin in request.effective_principals:
+% if UserRole.SuperAdmin in request.effective_principals:
 					<li class="${"active" if request.matched_route.name.startswith("admin_user_") else ""}">
 						<a href="${request.route_url("admin_user_list")}">Users</a>
 					</li>

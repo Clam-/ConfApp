@@ -14,17 +14,17 @@
 		</thead>
 	<% count = 0 %>
 % for item in page.items:
-	<%	
+	<%
 		rowstyle = "row-even" if count % 2 == 0 else "row-odd"
-		
+
 		surl = request.route_url("admin_user_edit", id=item.id)
 	%>
 		<tr class="${rowstyle}">
 			<td><a href="${surl}" class="linkcell">${item.id}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.username}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.name}</a></td>
-			<td><a href="${surl}" class="linkcell">${item.role}</a></td>
-			<td><a href="${surl}" class="linkcell"><span class="utcdate">${item.lastseen.isoformat()}</span></a></td>
+			<td><a href="${surl}" class="linkcell">${item.role.name}</a></td>
+			<td><a href="${surl}" class="linkcell"><span class="utcdate">${item.lastseen.isoformat() if item.lastseen else "" }</span></a></td>
 		</tr>
 	<%	count += 1 %>
 % endfor

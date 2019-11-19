@@ -10,10 +10,10 @@ def groupfinder(userid, request):
 
 #request.effective_principals
 def checkAdmin(effective_principals):
-	return any(x in (UserRole.admin, UserRole.superadmin) for x in effective_principals)
+	return any(x in (UserRole.Admin, UserRole.SuperAdmin) for x in effective_principals)
 
 def checkSport(effective_principals):
-	return any(x in (UserRole.sports, UserRole.admin, UserRole.superadmin) for x in effective_principals)
+	return any(x in (UserRole.Sports_Checkin, UserRole.Admin, UserRole.SuperAdmin) for x in effective_principals)
 
 def checkMain(effective_principals):
-	return any(x in (UserRole.main, UserRole.admin, UserRole.superadmin) for x in effective_principals)
+	return any(x in (UserRole.Main_Checkin, UserRole.Admin, UserRole.SuperAdmin) for x in effective_principals)

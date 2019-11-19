@@ -17,7 +17,7 @@
 				<p class="form-control-static">${session.title}</p>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label">Building</label>
 			<div class="col-sm-1">
@@ -33,27 +33,27 @@
 				<p class="form-control-static">${session.room.name if session.room else "Error."}</p>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 % if not mainen:
-			<label class="col-sm-2 control-label">Handouts <br/>(Said: ${session.handouts_said.description})</label>
+			<label class="col-sm-2 control-label">Handouts <br/>(Said: ${session.handouts_said.name})</label>
 				<p class="col-sm-3 form-control-static">${str(session.handouts)}</p>
 			<label class="col-sm-2 control-label">Evaluations</label>
-				<p class="col-sm-3 form-control-static">${session.evaluations.description}</p>
+				<p class="col-sm-3 form-control-static">${session.evaluations.name}</p>
 % else:
-			<label class="col-sm-2 control-label" for="formHandouts">Handouts (${session.handouts.description}):<br/>Said: ${session.handouts_said.description}</label>
+			<label class="col-sm-2 control-label" for="formHandouts">Handouts (${session.handouts.name}):<br/>Said: ${session.handouts_said.name}</label>
 			<div class="col-sm-3">
 				${self.selectclslist("handouts", session.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
 				<input type="hidden" name="handouts_orig" value="${session.handouts.value}"/>
 			</div>
-			<label class="col-sm-2 control-label" for="formEval">Evaluations (${session.evaluations.description})</label>
+			<label class="col-sm-2 control-label" for="formEval">Evaluations (${session.evaluations.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("evaluations", session.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
 				<input type="hidden" name="evaluations_orig" value="${session.evaluations.value}"/>
 			</div>
 % endif
 		</div>
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label" for="formComment">Comment</label>
 			<div class="col-sm-3">
@@ -87,8 +87,8 @@
 						</tr>
 					</thead>
 					<tbody>
-<% 
-count = 0 
+<%
+count = 0
 regids = []
 regids_sport = []
 collectids = []
@@ -102,18 +102,18 @@ else:
 	rowstyle = "row-even" if (count % 2 == 0) else "row-odd"
 person_id = iperson.id
 uurl = request.route_url("admin_person_edit", id=person_id)
-if session.room and (session.room.building.number == "1" ): # or session.room.building.number == "60"
+if session.room and (session.room.building.number == "1") or session.room.building.number == "23": # or session.room.building.number == "60"
 	sporttick = u"\u2714" if assoc.registered_sport else u"\u2717"
 else:
 	sporttick = "-"
-	
+
 if assoc.registered:
 	regids.append(str(person_id))
 if assoc.registered_sport:
 	regids_sport.append(str(person_id))
-if iperson.shirtcollect:	
+if iperson.shirtcollect:
 	collectids.append(str(person_id))
-	
+
 %>\
 						<tr class="${rowstyle}">
 % if not mainen:
@@ -164,7 +164,7 @@ if iperson.shirtcollect:
 			</div>
 		</div>
 
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label" for="formEquipmentBorrowed">Equipment borrowed</label>
 			<div class="col-sm-3">
@@ -177,7 +177,7 @@ if iperson.shirtcollect:
 				<input type="hidden" name="equip_returned_orig" value="${session.equip_returned}"/>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label" for="formOther">Other</label>
 			<div class="col-sm-3">
@@ -185,7 +185,7 @@ if iperson.shirtcollect:
 				<input type="hidden" name="other_orig" value="${session.other}"/>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<div class="col-sm-2 control-label">
 				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save"/>
@@ -194,7 +194,7 @@ if iperson.shirtcollect:
 				<input class="btn btn-default" type="submit" name="form.cancelled" value="Cancel"/>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label">Booked</label>
 			<div class="col-sm-1">
@@ -206,7 +206,7 @@ if iperson.shirtcollect:
 				<p class="form-control-static">${session.max if session.max else ""}</p>
 			</div>
 		</div>
-		
+
 	</form>
 </div>
 <!--

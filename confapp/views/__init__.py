@@ -19,7 +19,7 @@ from confapp.models import (
 	User,
 	)
 
-from webhelpers.paginate import PageURL_WebOb, Page
+from paginate_sqlalchemy import SqlalchemyOrmPage
 
 from pyramid.security import (
     remember,
@@ -48,11 +48,11 @@ class BaseAdminView(BaseView):
 			raise HTTPFound(location=self.request.route_url(location, **kwargs))
 		else:
 			raise HTTPFound(location=location)
-	
+
 	def flash(self, msg):
 		self.request.session.flash(msg)
 		self.errors = True
-	
+
 	# TODO: This currently isn't used at the moment. Turned out it didn't actually do what I wanted it to
 	#	I might need to actually commit the session then attempt flush to catch DB consistency errors.
 	def doFlush(self, item=None, **kwargs):
@@ -69,11 +69,11 @@ class BaseAdminView(BaseView):
 					self.error_redirect("Database error: %s" % e, location="admin_%s_list" % item.__tablename__, **kwargs)
 			else:
 				self.error_redirect("Database error: %s" % e, **kwargs)
-	
+
 	def getItem(self, CLS, _id, errloc='admin_home', route=True, polymorphic=False, **kwargs):
 		if _id:
 			try: _id = int(_id)
-			except ValueError: self.error_redirect("%s (%s) not found." % (CLS.__name__, _id), 
+			except ValueError: self.error_redirect("%s (%s) not found." % (CLS.__name__, _id),
 				errloc, route, **kwargs)
 			if polymorphic:
 				return DBSession.query(CLS).with_polymorphic('*').get(_id)
@@ -81,14 +81,14 @@ class BaseAdminView(BaseView):
 				return DBSession.query(CLS).get(_id)
 		else:
 			return None
-	
+
 	# Only really used from getItemOrCreate, and admin_del
 	def getItemOrFail(self, CLS, _id, **kwargs):
 		item = self.getItem(CLS, _id, **kwargs)
 		if not item:
 			self.error_redirect("%s (%s) not found." % (CLS.__name__, _id), location="admin_%s_list" % CLS.__tablename__, **kwargs)
 		return item
-	
+
 	# Only used from non-associative lists
 	def getItemOrCreate(self, CLS, param='id', **kwargs):
 		md = self.request.matchdict
@@ -97,14 +97,14 @@ class BaseAdminView(BaseView):
 		else: #new
 			item = CLS()
 		return item
-		
+
 	def parseInt(self, i):
 		if i:
 			try: return int(i)
 			except ValueError as e:
 				self.request.session.flash("Warning: %s is not an integer. Not storing." % i)
 		return None
-	
+
 	def parseDate(self, param, format):
 		params = self.request.params
 		if param in params:
@@ -114,11 +114,11 @@ class BaseAdminView(BaseView):
 				except ValueError as e:
 					self.request.session.flash("Warning: %s. Not storing. (%s)" % (str(e), params[param]))
 		return None
-		
+
 	def parseStr(self, param, strParserMeth=None):
 		s = self.request.params.get(param, None)
 		if s is None: return None
-		try: 
+		try:
 			if strParserMeth:
 				return strParserMeth(s.encode("ascii"))
 			else:
@@ -126,7 +126,7 @@ class BaseAdminView(BaseView):
 		except UnicodeEncodeError:
 			self.request.session.flash("Warning: (%s) has non ASCII characters. Not stored." % s)
 		return None
-		
+
 	def setStrUniValue(self, item, attr, value):
 		if value:
 			if not item.checkLen(attr, value):
@@ -138,16 +138,21 @@ class BaseAdminView(BaseView):
 	def parseEnum(self, param, CLS):
 		if param not in self.request.params:
 			self.flash("Missing type in %s. Value not stored/changed." % CLS.__name__)
-		try: return CLS.from_string(self.request.params[param])
+		try: return CLS(self.request.params[param])
 		except ValueError:
 			self.flash("Incorrect type in %s. Value not stored/changed. (%s)" % (CLS.__name__, self.request.params[param]))
 
 	def getPaginatePage(self, q, items_per_page=10):
-		try: current_page = int(self.request.params["page"])
-		except KeyError, ValueError: current_page = 1
-		page_url = PageURL_WebOb(self.request)
-		return Page(q, page=current_page, items_per_page=items_per_page, url=page_url)
-		
+		request = self.request
+		query_params = request.params.mixed()
+		try: page = int(request.params.get("page", 1))
+		except ValueError: page = 1
+		def url_maker(link_page):
+		    query_params['page'] = link_page
+		    return request.current_route_url(_query=query_params)
+		return SqlalchemyOrmPage(q, page, items_per_page=items_per_page,
+		                     url_maker=url_maker)
+
 	def setAttrIfChanged(self, item, param, parserMethod=None, *parserArgs, **parserkwArgs):
 		params = self.request.params
 		if param in params:
@@ -160,12 +165,12 @@ class BaseAdminView(BaseView):
 				val = params[param]
 				if val != params[param+"_orig"]:
 					setattr(item, param, val)
-				
+
 	def setAttrIfChangedCheckBox(self, assocs, param, person=False):
 		params = self.request.params
 		check = params.getall(param)
-		print "\nCHECKING %s\n" % param
-		print params
+		print("\nCHECKING %s\n" % param)
+		print(params)
 		if param+"_orig" not in params: return
 		check_orig = params.get(param+"_orig", "")
 		if check_orig: check_orig = set(check_orig.split(","))
@@ -174,7 +179,7 @@ class BaseAdminView(BaseView):
 		for item in assocs:
 			spid = str(item.person_id)
 			if spid in check_diff:
-				print "MODDING: %s" % spid
+				print("MODDING: %s" % spid)
 				if spid in check:
 					if person: setattr(item.person, param, True)
 					else: setattr(item, param, True)
@@ -199,7 +204,7 @@ class LoginOutView(BaseView):
 		if 'form.submitted' in request.params:
 			username = request.params['username']
 			password = request.params['password']
-			if password and User.check_password(username, password):
+			if password and User.check_user_pass(username, password):
 				headers = remember(request, username)
 				return HTTPFound(location = came_from,
 					headers = headers)
@@ -213,7 +218,7 @@ class LoginOutView(BaseView):
 			password = password,
 			section = "Log in",
 		)
-			
+
 	@view_config(route_name='logout')
 	def logout(self):
 		request = self.request

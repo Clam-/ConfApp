@@ -9,7 +9,7 @@
 		</h2>
 	</div>
 	<form class="form-horizontal" action="${request.route_url("admin_session_edit", id=item.id) if item.id else request.route_url("admin_session_new")}" method="post">
-		
+
 		<div class="form-group">
 			<label class="col-sm-1 control-label" for="formCode">Code</label>
 			<div class="col-sm-1">
@@ -27,7 +27,7 @@
 				<input type="hidden" name="title_orig" value="${item.title}"/>
 			</div>
 		</div>
-	
+
 		<div class="form-group">
 			<label class="col-sm-1 control-label" for="formBuilding">Building No.</label>
 			<div class="col-sm-1">
@@ -42,18 +42,18 @@
 		</div>
 
 		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formHandouts">Handouts (Said: ${item.handouts_said.description})</label>
+			<label class="col-sm-2 control-label" for="formHandouts">Handouts (Said: ${item.handouts_said.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("handouts", item.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
 				<input type="hidden" name="handouts_orig" value="${item.handouts.value}"/>
 			</div>
-			<label class="col-sm-2 control-label" for="formEval">Evaluations (${item.evaluations.description})</label>
+			<label class="col-sm-2 control-label" for="formEval">Evaluations (${item.evaluations.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("evaluations", item.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
 				<input type="hidden" name="evaluations_orig" value="${item.evaluations.value}"/>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<label class="col-sm-2 control-label" for="formEquipmentBorrowed">Equipment borrowed</label>
 			<div class="col-sm-3">
@@ -80,7 +80,7 @@
 			</div>
 		</div>
 
-<% 
+<%
 facs = item.facilities_req
 faclen = facs.count("\n")
 if faclen < 2:
@@ -92,7 +92,7 @@ if faclen < 2:
 				<textarea class="form-control" name="facilities_req" rows="${faclen}" cols="20" id="formFacilitiesReq">${facs}</textarea>
 				<input type="hidden" name="facilities_req_orig" value="${item.facilities_req}"/>
 			</div>
-<% 
+<%
 facs = item.facilities_got
 faclen = facs.count("\n")
 if faclen < 2:
@@ -104,14 +104,14 @@ if faclen < 2:
 				<input type="hidden" name="facilities_got_orig" value="${item.facilities_got}"/>
 			</div>
 		</div>
-		
+
 		<div class="form-group">
 			<div class="col-sm-2 control-label">
 				<input type="hidden" name="came_from" value="${came_from}"/>
 				<button class="btn btn-primary" type="submit" name="form.submitted">Save</button>
 			</div>
 		</div>
-		
+
 		<div class="row">
 			<div class="col-sm-2"></div>
 			<div class="col-sm-8 assoc-list">
@@ -129,7 +129,7 @@ if faclen < 2:
 					<tbody>
 <% count = 0 %>
 % for assoc in item.assoc:
-<% 
+<%
 person = assoc.person
 
 rowstyle = "row-even" if (count % 2 == 0) else "row-odd"
@@ -149,7 +149,7 @@ uurl = request.route_url("admin_person_edit", id=person.id)
 				</table>
 			</div>
 			<div class="col-sm-2"></div>
-		</div>		
+		</div>
 % if admin:
 		<button type="submit" class="btn btn-danger" name="form.remove">REMOVE Person(s) selected above &amp; Save</button>
 % endif

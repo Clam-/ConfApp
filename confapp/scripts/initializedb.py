@@ -21,8 +21,8 @@ from ..models import (
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri> [var=value]\n'
-          '(example: "%s development.ini")' % (cmd, cmd))
+    print(('usage: %s <config_uri> [var=value]\n'
+          '(example: "%s development.ini")' % (cmd, cmd)))
     sys.exit(1)
 
 
@@ -38,6 +38,6 @@ def main(argv=sys.argv):
 	Base.metadata.create_all(engine)
 
 	with transaction.manager:
-		root = User(username=u'root', role=UserRole.superadmin)
-		root.password = "superRoot12"
+		root = User(username='root', role=UserRole.SuperAdmin)
+		root.set_password("superRoot12")
 		DBSession.add(root)

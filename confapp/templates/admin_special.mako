@@ -1,7 +1,7 @@
 <%inherit file="admin-special-base.mako"/>
 <div class="container-fluid">
-<% day = section.description %>
-	<h2>Registrations for ${section.description}</h2>
+<% day = section.name %>
+	<h2>Registrations for ${section.name}</h2>
 	<table class="table">
 		<thead class="table-header">
 			<tr>

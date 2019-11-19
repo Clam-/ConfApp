@@ -4,7 +4,7 @@
 % if logged_in == "main" and helpers:
 <div class="col-sm-10">
 % endif
-<% day = section.description %>
+<% day = section.name %>
 	<div class="header">
 		<h3>Registrations for ${day}</h3>
 	</div>
@@ -27,7 +27,7 @@
 				<th>Last name</th>
 				<th>First name</th>
 				<th>Type</th>
-<%		
+<%
 		if name and code:
 			uurl = request.route_url("admin_day_search", day=day, name=name, code=code, _query={"sort":"code"})
 		elif name:
@@ -47,33 +47,33 @@
 				<th>Comment</th>
 			</tr>
 		</thead>
-<% 
-count = 0 
+<%
+count = 0
 items = page.items
 sport = False
 %>
 % for item in items:
-	<%	
+	<%
 		session = item.session
 		person = item.person
-		
+
 		session_id = session.id
 		person_id = person.id
-		
-		if session.room and (session.room.building.number == "1"): sport = True # or session.room.building.number == "60"
+
+		if session.room and (session.room.building.number == "1") or session.room.building.number == "23": sport = True # or session.room.building.number == "60"
 		else: sport = False
-		
+
 		if marker == "%s-%s" % (session_id, person_id):
 			rowstyle = "row-marker"
 		else:
 			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
-		
+
 		if session.equipment == session.equip_returned:
 			equipstyle = ""
 		else:
 			equipstyle = "table-cell-bad-even" if count % 2 == 0 else "table-cell-bad-odd"
-		
-		
+
+
 		if name and code:
 			uurl = request.route_url("admin_day_edit_nc", day=day, session=session_id, person=person_id, name=name, code=code)
 		elif name:
