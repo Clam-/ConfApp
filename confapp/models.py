@@ -196,6 +196,7 @@ class Session(Base):
 	time = Column(Unicode(20))
 
 	submissionID = Column(Integer)
+	sport = Column(Boolean)
 
 	day = Column(Enum(DayType), nullable=False, name="day")
 

@@ -799,14 +799,12 @@ class AdminAdmin(BaseAdminView):
 			row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
 			cancelled = True
 		c = row[CSV_VENUE_CODE][0:3]
-		print("\n\nPS CODE:   ", c)
 		# match code format:
 		if not CODE.match(c):
 			c = row[CSV_VENUE_CODE][0:4]
 			if not CODE2.match(c): c = None
 
 		if c and c not in self.sessions:
-			print("\n\nPROCESSING... ", c)
 			if not cancelled: room = self.processLocation(row)
 			else: room = None
 			# Create session
@@ -823,26 +821,27 @@ class AdminAdmin(BaseAdminView):
 				sesstime = CODE_TIMEMAP[c]
 			else:
 				time = CODE_TIMEMAP[c[0]]
+			if room.building.number == 1: sport = True
+			else: sport = False
 			s = Session(code=c, title=title, sessiontype=SessionType.NA,
 				day=DayType(day), evaluations=HandoutType.At_Desk,
-				room=room, cancelled=cancelled, time=sesstime)
+				room=room, cancelled=cancelled, time=sesstime, sport=sport)
 			DBSession.add(s)
 			self.sessions[c] = s
 		return True
 
 	def processSessionUpdate(self, row):
 		cancelled = False
-		if row[3].startswith("UNAVAILABLE "):
-			row[3] = row[3][12:]
+		if row[CSV_VENUE_CODE].startswith("UNAVAILABLE "):
+			row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
 			cancelled = True
-		c = row[3][0:3]
+		c = row[CSV_VENUE_CODE][0:3]
+		# match code format:
 		if not CODE.match(c):
-			c = row[3][0:4]
+			c = row[CSV_VENUE_CODE][0:4]
 			if not CODE2.match(c): c = None
 
 		if c and c not in self.sessions:
-			if c == "B10":
-				print("\n\nDOING B10")
 			if not cancelled: room = self.processLocationUpdate(row)
 			else: room = None
 			# Create session
