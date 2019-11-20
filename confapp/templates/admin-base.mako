@@ -26,15 +26,15 @@ from confapp.security import (
 % endfor
 </select>\
 </%def>\
-<%def name="selectidlist(name, items, attrs, default='', _class=None, _id=None)">\
+<%def name="selectidlist(name, items, attrs, default='', value='', _class=None, _id=None)">\
 % if _class:
 <select class="${_class}" name="${name}" id="${_id}">\
 % else:
 <select name="${name}">\
 % endif
-<option value="" selected="selected">(${default})</option>\
+<option value="" ${"" if value else 'selected="selected"'}>(${default})</option>\
 % for item in items:
-<option value="${item.id}">${getattr(item, attrs[0])}.${getattr(item, attrs[1])[:1]}</option>\
+<option value="${item.id}" ${'selected="selected"' if value == item.id else ""} >${getattr(item, attrs[0])}.${getattr(item, attrs[1])}</option>\
 % endfor
 </select>\
 </%def>\

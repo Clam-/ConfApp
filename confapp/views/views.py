@@ -51,11 +51,11 @@ from confapp.models import (
 	Base,
 	)
 
-from ..libs.helpers import read_csv, convertfile, CODE, CODE2,\
-	CSV_VENUE_CODE, CSV_VENUE_TITLE, CSV_VENUE_ADDR, CSV_VENUE_ST,\
+from ..libs.helpers import read_csv, convertfile, TIME, CODE, CODE2,\
+	CSV_VENUE_CODE, CSV_VENUE_TITLE, CSV_VENUE_ADDR, CSV_VENUE_NAME, CSV_VENUE_LOC,\
 	CSV_VENUE_ROOM, CSV_VENUE_BUILDING, CSV_PEOPLE_FNAME, CSV_PEOPLE_LNAME,\
 	CSV_PEOPLE_ORG, CSV_PEOPLE_RNGS, CSV_PEOPLE_RNGF, CSV_PEOPLE_PHONE,\
-	CSV_PEOPLE_EMAIL, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM
+	CSV_PEOPLE_EMAIL, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM, CODE_TIMEMAP
 
 from time import time
 from os import unlink
@@ -402,6 +402,7 @@ class AdminEdit(BaseAdminView):
 		params = request.params
 
 		item = self.getItemOrCreate(Session)
+		rooms = DBSession.query(Room).all()
 
 		if 'form.submitted' in params or 'form.remove' in params:
 			if item.id is None:
@@ -415,8 +416,7 @@ class AdminEdit(BaseAdminView):
 			self.setAttrIfChanged(item, 'facilitiesReq')
 			self.setAttrIfChanged(item, 'facilitiesGot')
 
-			self.setAttrIfChanged(item, 'building', parserMethod=self.parseStr)
-			self.setAttrIfChanged(item, 'room', parserMethod=self.parseStr)
+			self.setAttrIfChanged(item, 'room', self.parseCLSid, Room)
 			self.setAttrIfChanged(item, 'loctype', parserMethod=self.parseStr)
 
 			self.setAttrIfChanged(item, 'other')
@@ -447,7 +447,7 @@ class AdminEdit(BaseAdminView):
 
 			return HTTPFound(location=request.route_url('admin_session_edit', id=item.id))
 
-		return dict(section="session", item=item, came_from="",)
+		return dict(section="session", item=item, came_from="",rooms=rooms)
 
 	@view_config(route_name='admin_person_new', renderer='admin_person_edit.mako', permission='checkin')
 	@view_config(route_name='admin_person_edit', renderer='admin_person_edit.mako', permission='checkin')
@@ -799,7 +799,8 @@ class AdminAdmin(BaseAdminView):
 			row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
 			cancelled = True
 		c = row[CSV_VENUE_CODE][0:3]
-		print("\n\nAAAAAA   ", c)
+		print("\n\nPS CODE:   ", c)
+		# match code format:
 		if not CODE.match(c):
 			c = row[CSV_VENUE_CODE][0:4]
 			if not CODE2.match(c): c = None
@@ -813,13 +814,18 @@ class AdminAdmin(BaseAdminView):
 			else: title = row[CSV_VENUE_TITLE]
 			day = "T" if c[0] in ("A", "B", "C") else "F"
 			# process feature presenter days
+			sesstime = None
 			if c in ("FP01", "FP02", "FP03", "FP04", "FP05"):
 				day = "T"
+				sesstime = CODE_TIMEMAP[c]
 			elif c in ("FP06", "FP07", "FP08", "FP09", "FP10"):
 				day = "F"
-			s = Session(code=c, title=title, sessiontype=SessionType.na,
-				day=DayType.from_string(day), evaluations=HandoutType.pending,
-				room=room, cancelled=cancelled)
+				sesstime = CODE_TIMEMAP[c]
+			else:
+				time = CODE_TIMEMAP[c[0]]
+			s = Session(code=c, title=title, sessiontype=SessionType.NA,
+				day=DayType(day), evaluations=HandoutType.At_Desk,
+				room=room, cancelled=cancelled, time=sesstime)
 			DBSession.add(s)
 			self.sessions[c] = s
 		return True
@@ -861,43 +867,40 @@ class AdminAdmin(BaseAdminView):
 			if s: s.cancelled = True
 			else:
 				day = "T" if c[0] in ("A", "B", "C") else "F"
-				s = Session(code=c, title="Cancelled", sessiontype=SessionType.na,
-					day=DayType.from_string(day), evaluations=HandoutType.pending,
+				s = Session(code=c, title="Cancelled", sessiontype=SessionType.NA,
+					day=DayType(day), evaluations=HandoutType.At_Desk,
 					cancelled=True)
 				DBSession.add(s)
 		return True;
 
 	def processLocation(self, row):
 		# Create room
-		location = [x.strip() for x in row[4].split(",", 2)]
+		location = [x.strip() for x in row[CSV_VENUE_LOC].split(",", 2)]
 		ex = ""
 		# Building
-		address = None
-		if location[CSV_VENUE_ST].startswith("Monash Sport"):
+		name = None
+		if location[CSV_VENUE_BUILDING].startswith("Monash Sport"):
 			building = 1
-			address = "Scenic Boulevard"
+			name = "Monash Sport"
 		else:
-			#Ancora Imparo Way, Building 19, 2.21
-			#College Walk, Building 23, Campus Park Basketball Court
-			#College Walk, Building 23, Engineering Halls EH 4
-			if "Near" in location[CSV_VENUE_BUILDING]:
-				building = location[CSV_VENUE_BUILDING][-2:]
-				ex = location[CSV_VENUE_BUILDING].split("Building")[0].strip()
 			building = int(location[CSV_VENUE_BUILDING][-2:])
-		# Address
-		if not address:
-			address = location[CSV_VENUE_ST]
+			bname = location[CSV_VENUE_NAME].strip()
+			if bname: name = bname
+
 		# Room
 		if building == 1:
-			room = location[1]
+			room = location[CSV_VENUE_NAME]
 		else:
-			room = location[CSV_VENUE_ROOM]
+			if len(location) == 3:
+				room = location[CSV_VENUE_ROOM].replace("ROOM ", "")
+			else:
+				room = location[CSV_VENUE_NAME].replace("ROOM ", "")
 		if room in self.rooms:
 			return self.rooms[room]
 		if building in self.buildings:
 			b = self.buildings[building]
 		else:
-			b = Building(number=building, address=address)
+			b = Building(number=building, name=name)
 			DBSession.add(b)
 			self.buildings[building] = b
 		r = Room(name=room)
@@ -1095,11 +1098,11 @@ class AdminAdmin(BaseAdminView):
 			c = session[0:4]
 			if not CODE2.match(c): c = None
 		if c:
-			DBSession.query(Session).filter(Session.code == c).one().handouts_said = HandoutSaidType.pending
+			DBSession.query(Session).filter(Session.code == c).one().handouts_said = HandoutSaidType.At_Desk
 			if row[4].strip():
-				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.pending
+				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.At_Desk
 			else:
-				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.na
+				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.NA
 		return True
 	def processSessionCaps(self, row):
 		# Skip non row

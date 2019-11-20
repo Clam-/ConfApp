@@ -31,13 +31,17 @@
 		<div class="form-group">
 			<label class="col-sm-1 control-label" for="formBuilding">Building No.</label>
 			<div class="col-sm-1">
-				<input class="form-control" type="text" name="building" value="${item.room.building.number if item.room else ""}" id="formBuilding" ${'readonly="readonly"' if not admin else ""}/>
+				<input class="form-control" type="text" name="building" value="${item.room.building.number if item.room else ""}" id="formBuilding" readonly />
 				<input type="hidden" name="building_orig" value="${item.room.building.number if item.room else ""}"/>
 			</div>
 			<label class="col-sm-1 control-label" for="formRoom">Room</label>
 			<div class="col-sm-4">
-				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" ${'readonly="readonly"' if not admin else ""}/>
-				<input type="hidden" name="room_orig" value="${item.room.name if item.room else ""}"/>
+% if admin:
+				${self.selectidlist("room", rooms, ("building", "name"), "Select Room", item.room.id, _class="form-control", _id="formRoom")}
+% else:
+				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" readonly/>
+% endif
+				<input type="hidden" name="room_orig" value="${item.room.id if item.room else ""}"/>
 			</div>
 		</div>
 

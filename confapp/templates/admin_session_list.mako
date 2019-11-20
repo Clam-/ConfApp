@@ -30,12 +30,12 @@
 		</thead>
 	<% count = 0 %>
 % for item in page.items:
-	<%	
+	<%
 		if marker == str(item.id):
 			rowstyle = "row-marker"
 		else:
 			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
-		
+
 		if item.equipment == item.equip_returned:
 			equipstyle = ""
 		else:
@@ -52,13 +52,13 @@
 % endif
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equip_returned}</a></td>
-			<td><a href="${surl}" class="linkcell">${item.handouts}</a></td>
-			<td><a href="${surl}" class="linkcell">${item.evaluations}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.handouts.name}</a></td>
+			<td><a href="${surl}" class="linkcell">${item.evaluations.name}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.other}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.comments}</a></td>
 		</tr>
 	<%	count += 1 %>
 % endfor
 	</table>
-	<p> Page: ${page.pager()} </p>
+	<p> Page: ${page.pager() | n } </p>
 </div>

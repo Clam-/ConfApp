@@ -138,9 +138,19 @@ class BaseAdminView(BaseView):
 	def parseEnum(self, param, CLS):
 		if param not in self.request.params:
 			self.flash("Missing type in %s. Value not stored/changed." % CLS.__name__)
+			return
 		try: return CLS(self.request.params[param])
 		except ValueError:
 			self.flash("Incorrect type in %s. Value not stored/changed. (%s)" % (CLS.__name__, self.request.params[param]))
+
+	def parseCLSid(self, param, CLS):
+		if param not in self.request.params:
+			self.flash("Missing type in %s. Value not stored/changed." % CLS.__name__)
+			return
+		item = DBSession.query(CLS).get(self.request.params[param])
+		if not item:
+			self.flash("Item not found: ({0}, {1})".format(CLS.__name__, self.request.params[param]))
+		return item
 
 	def getPaginatePage(self, q, items_per_page=10):
 		request = self.request

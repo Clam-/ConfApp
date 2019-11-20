@@ -193,6 +193,7 @@ class Session(Base):
 	code = Column(Unicode(10), index=True, unique=True, nullable=True)
 	cancelled = Column(Boolean, index=True)
 	title = Column(Unicode(100))
+	time = Column(Unicode(20))
 
 	submissionID = Column(Integer)
 
@@ -231,9 +232,9 @@ class Session(Base):
 	assoc = relationship("Association", backref="session", cascade="save-update, merge, delete")
 
 	def __init__(self, **kwargs):
-		self.handouts = HandoutType.na
-		self.handouts_said = HandoutSaidType.na
-		self.evaluations = HandoutType.na
+		self.handouts = HandoutType.NA
+		self.handouts_said = HandoutSaidType.NA
+		self.evaluations = HandoutType.NA
 		for key in kwargs:
 			setattr(self, key, kwargs[key])
 
@@ -288,6 +289,10 @@ class Building(Base):
 	address = Column(String(100))
 
 	rooms = relationship("Room", backref="building", lazy='joined')
+
+	def __str__(self):
+		return "{0}".format(self.number)
+
 
 class Room(Base):
 	name = Column(String(50))
