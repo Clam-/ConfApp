@@ -4,19 +4,17 @@
 		<h2>${section.capitalize()} list</h2>
 	</div>
 
-	<form class="form-inline" action="${request.route_url("admin_person_list", day=section)}" method="post">
-		<div class="form-group">
-			<label class="sr-only control-label" for="formName">Search name</label>
-			<input class="form-control" id="formName" type="text" name="search.name" value="" placeholder="Name" autofocus />
+	<form action="${request.route_url("admin_person_list", day=section)}" method="post">
+		<div class="form-group row">
+			<label class="sr-only col-form-label" for="formName">Search name</label>
+			<input class="col-3 form-control" id="formName" type="text" name="search.name" value="" placeholder="Name" autofocus >
+			<label class="sr-only col-form-label" for="formCode">Code</label>
+			<input class="col-1 form-control" id="formCode" type="text" name="search.code" value="" placeholder="Code">
+			<button type="submit" class="col-1 btn btn-primary" name="form.submitted">Search</button>
+			<a href="${request.route_url("admin_person_new")}" class="col-1 btn btn-info ml-auto" role="button">New</a>
 		</div>
-		<div class="form-group">
-			<label class="sr-only control-label" for="formCode">Code</label>
-			<input class="form-control" id="formCode" type="text" name="search.code" value="" placeholder="Code"/>
-		</div>
-		<button type="submit" class="btn btn-default" name="form.submitted">Search</button>
-		<a href="${request.route_url("admin_person_new")}" class="btn btn-info pull-right" role="button">New</a>
 	</form>
-	
+
 
 	<table class="table">
 		<thead class="table-header">
@@ -33,12 +31,12 @@
 		</thead>
 	<% count = 0 %>
 % for item in page.items:
-	<%	
+	<%
 		if marker == str(item.id):
 			rowstyle = "row-marker"
 		else:
 			rowstyle = "row-even" if count % 2 == 0 else "row-odd"
-		
+
 		uurl = request.route_url("admin_person_edit", id=item.id)
 	%>
 		<tr class="${rowstyle}">
@@ -54,7 +52,7 @@
 			<td><a href="${uurl}" class="linkcell">${item.shirtsize}
 			<td><a href="${uurl}" class="linkcell">${item.phone.replace("\n"," | ") if item.phone else ""}</a></td>
 			<td><a href="${uurl}" class="linkcell">${item.email.replace("\n",";") if item.email else ""}</a></td>
-			
+
 		</tr>
 	<%	count += 1 %>
 % endfor

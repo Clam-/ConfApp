@@ -55,7 +55,8 @@ from ..libs.helpers import read_csv, convertfile, TIME, CODE, CODE2,\
 	CSV_VENUE_CODE, CSV_VENUE_TITLE, CSV_VENUE_ADDR, CSV_VENUE_NAME, CSV_VENUE_LOC,\
 	CSV_VENUE_ROOM, CSV_VENUE_BUILDING, CSV_PEOPLE_FNAME, CSV_PEOPLE_LNAME,\
 	CSV_PEOPLE_ORG, CSV_PEOPLE_RNGS, CSV_PEOPLE_RNGF, CSV_PEOPLE_PHONE,\
-	CSV_PEOPLE_EMAIL, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM, CODE_TIMEMAP
+	CSV_PEOPLE_EMAIL, CSV_PEOPLE_ORGOTHER, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM,\
+	CODE_TIMEMAP, CSV_CAPS_CODE, CSV_CAPS_BOOKED, CSV_CAPS_MAX
 
 from time import time
 from os import unlink
@@ -147,7 +148,7 @@ class AdminListing(BaseAdminView):
 				item.person.firstname,
 				item.person.lastname,
 				item.person.email.strip().replace("\n", ";") if item.person.email else "",
-				str(item.type),
+				str(item.type.name),
 				item.session.code,
 				item.session.title,
 				str(item.session.evaluations),
@@ -772,6 +773,7 @@ class AdminAdmin(BaseAdminView):
 			request.session.flash('Upload of (%s) complete.' % filename)
 		except UnicodeDecodeError:
 			request.session.flash("Could not read (%s) correctly. Please upload as 'CSV UTF-8 (Comma Delimited) .csv'" % filename)
+			unlink(input_file)
 			abort()
 		unlink(input_file)
 		commit()
@@ -959,14 +961,14 @@ class AdminAdmin(BaseAdminView):
 		if (firstname, lastname, email) in self.people:
 			p = self.people[(firstname, lastname, email)]
 		else:
-			phone = ""
+			phone = []
 			for ph in CSV_PEOPLE_PHONE:
-				phone += "%s\n" % row[ph].strip()
+				if row[ph].strip(): phone.append(row[ph].strip())
 			org = row[CSV_PEOPLE_ORG].strip()
-			# if org == "Other":
-			# 	org = row[14].strip()
+			if org == "Other":
+				org = row[CSV_PEOPLE_ORGOTHER].strip()
 			p = Person(firstname=firstname, lastname=lastname, email=email,
-				phone=phone, organisation=org)
+				phone="\n".join(phone), organisation=org)
 			self.people[(firstname, lastname, email)] = p
 			DBSession.add(p)
 			DBSession.flush()
@@ -1103,18 +1105,41 @@ class AdminAdmin(BaseAdminView):
 			else:
 				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.NA
 		return True
+
 	def processSessionCaps(self, row):
 		# Skip non row
 		if not row[0].strip(): return True
 		# Process the session
 		session = row[0].strip()
+		cancelled = False
+		if session.startswith("UNAVAILABLE"):
+			cancelled = True
+			session = session[11:].strip()
 		c = session[0:3]
 		if not CODE.match(c):
 			c = session[0:4]
 			if not CODE2.match(c): c = None
+		if not c and cancelled: self.request.session.flash("Cancelled non-session? {0}".format(row[0]))
 		if c:
-			DBSession.query(Session).filter(Session.code == c).one().booked = int(row[1])
-			DBSession.query(Session).filter(Session.code == c).one().max = int(row[2])
+			day = "T" if c[0] in ("A", "B", "C") else "F"
+			s = DBSession.query(Session).filter(Session.code == c).first()
+			if s and cancelled:
+				self.request.session.flash("CANSESS {0}?".format(c))
+				s.cancelled = cancelled
+			if not s and cancelled:
+				self.request.session.flash("AddCan {0}".format(c))
+				s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
+					day=DayType(day), evaluations=HandoutType.NA,
+					cancelled=cancelled)
+				DBSession.add(s)
+			if not s and not cancelled:
+				self.request.session.flash("NEW?? {0}".format(c))
+				s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
+					day=DayType(day), evaluations=HandoutType.NA,
+					cancelled=cancelled)
+				DBSession.add(s)
+			s.booked = int(row[CSV_CAPS_BOOKED] if row[CSV_CAPS_BOOKED] else 0)
+			s.max = int(row[CSV_CAPS_MAX] if row[CSV_CAPS_MAX] else 0)
 		return True
 
 	def addPersonToSession(self, p, code, t=PersonType.Presenter):
@@ -1127,10 +1152,10 @@ class AdminAdmin(BaseAdminView):
 				DBSession.delete(DBSession.query(Association).filter(Association.person_id == p.id, Association.session_id == s.id).first())
 				DBSession.flush()
 				DBSession.add(Association(person_id=p.id, session_id=s.id, type=t))
-				self.request.session.flash("s")
-				print("Skipping duplicate session (%s) for (%s, %s)" % (code, p.firstname, p.lastname))
+				self.request.session.flash("{0}->{1}{2}".format(p.id, s.id, t.value))
+				#print("Skipping duplicate session (%s) for (%s, %s)" % (code, p.firstname, p.lastname))
 		except NoResultFound:
-			self.request.session.flash("x")
+			self.request.session.flash("x{0}->{1}{2}".format(p.id, code, t.value))
 			print("\n\nCould not find Session: (%s)\n\n" % code)
 
 

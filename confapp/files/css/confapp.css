@@ -19,8 +19,8 @@ body {
 /* Conf App style */
 .header { padding-bottom: 4px; }
 .pad-top { padding-top: 10px; }
-.assoc-list { 
-	background-color: #F5FCFF; 
+.assoc-list {
+	background-color: #b8eaff;
 	border-radius: 6px;
 }
 
@@ -29,7 +29,7 @@ tr.row-even { background-color:#F3F2FF; }
 tr.row-marker { background-color: #FFF5BF; }
 tr.row-hover { background-color:#FDEBFF; } /* hover has to come after marker to override */
 
-.table-header { font-weight:bold; }
+.thead-dark { font-weight:normal; }
 
 a.linkcell { height:100%; display:block; padding:0; }
 a.linkcell.text-success { color: #63D147 }
@@ -50,70 +50,27 @@ span.linkcell.text-success { color: #63D147 }
 a:hover {color:#4DAFFF;}  /* mouse over link */
 a:active {color:#135C1D;}  /* selected link */
 
-/* 	
-	NAVBAR COLOURS, FONT AND SIZE 
+/*
+	NAVBAR COLOURS, FONT AND SIZE
 	http://work.smarchal.com/twbscolor/css/e74c3cc0392becf0f1ffbbbc0
 */
-.navbar-default {
-  background-color: #e0f4ff;
+.navbar-dark {
+  background-color: #402b3f;
   border-color: #faebff;
   margin-bottom: 0;
 }
-.navbar-default .navbar-brand {
-  color: #31a4e8;
+.navbar-dark .navbar-brand {
+  color: #fdc8f7;
 }
-.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
-  color: #aa3dcc;
+.navbar-dark .navbar-text {
+  color: #ffe2fc;
 }
-.navbar-default .navbar-text {
-  color: #31a4e8;
-}
-.navbar-default .navbar-nav > li > a {
-  color: #31a4e8;
+.navbar-dark .navbar-nav {
   font-size: 20px;
 }
-.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
-  color: #aa3dcc;
-}
-.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
-  color: #aa3dcc;
-  background-color: #faebff;
-}
-.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
-  color: #aa3dcc;
-  background-color: #faebff;
-}
-.navbar-default .navbar-toggle {
-  border-color: #faebff;
-}
-.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
-  background-color: #faebff;
-}
-.navbar-default .navbar-toggle .icon-bar {
-  background-color: #31a4e8;
-}
-.navbar-default .navbar-collapse,
-.navbar-default .navbar-form {
-  border-color: #31a4e8;
-}
-.navbar-default .navbar-link {
-  color: #31a4e8;
-}
-.navbar-default .navbar-link:hover {
-  color: #aa3dcc;
-}
+
 .navbar-brand { font-size: 26px; }
 
-@media (max-width: 767px) {
-  .navbar-default .navbar-nav .open .dropdown-menu > li > a {
-    color: #31a4e8;
-  }
-  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
-    color: #aa3dcc;
-  }
-  .navbar-default .navbar-nav .open .dropdown-menu > .active > a, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
-    color: #aa3dcc;
-    background-color: #faebff;
-  }
+.vertical-align {
+     align-items: center;
 }
-

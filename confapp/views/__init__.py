@@ -118,13 +118,10 @@ class BaseAdminView(BaseView):
 	def parseStr(self, param, strParserMeth=None):
 		s = self.request.params.get(param, None)
 		if s is None: return None
-		try:
-			if strParserMeth:
-				return strParserMeth(s.encode("ascii"))
-			else:
-				return s.encode("ascii")
-		except UnicodeEncodeError:
-			self.request.session.flash("Warning: (%s) has non ASCII characters. Not stored." % s)
+		if strParserMeth:
+			return strParserMeth(s)
+		else:
+			return s
 		return None
 
 	def setStrUniValue(self, item, attr, value):

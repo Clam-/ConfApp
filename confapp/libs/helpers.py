@@ -40,15 +40,19 @@ CSV_VENUE_BUILDING = 0
 CSV_VENUE_LOC = 2
 CSV_VENUE_ROOM = 2
 CSV_VENUE_NAME = 1
-CSV_PEOPLE_FNAME = 0
-CSV_PEOPLE_LNAME = 1
-CSV_PEOPLE_ORG = 2
-CSV_PEOPLE_RNGS = 3
-CSV_PEOPLE_RNGF = 8
-CSV_PEOPLE_PHONE = (9, 10)
+CSV_PEOPLE_FNAME = 9
+CSV_PEOPLE_LNAME = 10
+CSV_PEOPLE_ORG = 14
+CSV_PEOPLE_ORGOTHER = 15
+CSV_PEOPLE_RNGS = 32
+CSV_PEOPLE_RNGF = 39 # last col +1 for slicing.
+CSV_PEOPLE_PHONE = (12, 13)
 CSV_PEOPLE_EMAIL = 11
-CSV_PEOPLE_SHIRT = 12
-CSV_PEOPLE_SHIRTM = ("Complimentary Speaker", "Comp Speaker Day Reg", "Complimentary Registration")
+CSV_PEOPLE_SHIRT = 2
+CSV_PEOPLE_SHIRTM = ("Complimentary Speaker", "Complimentary Registration")
+CSV_CAPS_CODE = 0
+CSV_CAPS_BOOKED = 1
+CSV_CAPS_MAX = 2
 
 def read_csv(fname):
 	with open(fname, "rb") as f:

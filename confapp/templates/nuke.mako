@@ -5,7 +5,7 @@
 	</div>
 	<div class="row">
 	<form action="${request.route_url("nuke")}" method="post" enctype="multipart/form-data">
-		<div class="form-group">
+		<div class="form-group row">
 			<label for="nuke">Are you sure you want to remove all entries?</label>
 			<button id="nuke" type="submit" class="btn btn-danger">Delete all entries</button>
 		</div>

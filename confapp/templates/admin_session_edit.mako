@@ -4,83 +4,83 @@
 	<div class="header">
 		<h2><span>${"Editing" if item.id else "New"} Session ${"CANCELLED" if item.cancelled else ""}</span>
 % if item.id and admin:
-		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger pull-right" role="button">Delete ${type(item).__name__}</a>
+		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger float-right" role="button">Delete ${type(item).__name__}</a>
 % endif
 		</h2>
 	</div>
-	<form class="form-horizontal" action="${request.route_url("admin_session_edit", id=item.id) if item.id else request.route_url("admin_session_new")}" method="post">
+	<form action="${request.route_url("admin_session_edit", id=item.id) if item.id else request.route_url("admin_session_new")}" method="post">
 
-		<div class="form-group">
-			<label class="col-sm-1 control-label" for="formCode">Code</label>
+		<div class="form-group row">
+			<label class="col-sm-1 col-form-label" for="formCode">Code</label>
 			<div class="col-sm-1">
-				<input class="form-control" type="text" name="code" value="${item.code}" id="formCode" ${'readonly="readonly"' if not admin else ""} />
-				<input type="hidden" name="code_orig" value="${item.code}"/>
+				<input class="form-control" type="text" name="code" value="${item.code}" id="formCode" ${'readonly="readonly"' if not admin else ""}>
+				<input type="hidden" name="code_orig" value="${item.code}">
 			</div>
-			<label class="col-sm-1 control-label" for="formDay">Day</label>
+			<label class="col-sm-1 col-form-label" for="formDay">Day</label>
 			<div class="col-sm-2">
 				${self.selectclslist("day", item.day, self.attr.DayType, _class="form-control", _id="formDay")}
-				<input type="hidden" name="day_orig" value="${item.day.value if item.day else ""}"/>
+				<input type="hidden" name="day_orig" value="${item.day.value if item.day else ""}">
 			</div>
-			<label class="col-sm-2 control-label" for="formSessionTitle">Session title</label>
+			<label class="col-sm-2 col-form-label" for="formSessionTitle">Session title</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="title" value="${item.title}" id="formSessionTitle" ${'readonly="readonly"' if not admin else ""}/>
-				<input type="hidden" name="title_orig" value="${item.title}"/>
+				<input class="form-control" type="text" name="title" value="${item.title}" id="formSessionTitle" ${'readonly="readonly"' if not admin else ""}>
+				<input type="hidden" name="title_orig" value="${item.title}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-1 control-label" for="formBuilding">Building No.</label>
+		<div class="form-group row">
+			<label class="col-sm-1 col-form-label" for="formBuilding">Building No.</label>
 			<div class="col-sm-1">
-				<input class="form-control" type="text" name="building" value="${item.room.building.number if item.room else ""}" id="formBuilding" readonly />
-				<input type="hidden" name="building_orig" value="${item.room.building.number if item.room else ""}"/>
+				<input class="form-control" type="text" name="building" value="${item.room.building.number if item.room else ""}" id="formBuilding" readonly >
+				<input type="hidden" name="building_orig" value="${item.room.building.number if item.room else ""}">
 			</div>
-			<label class="col-sm-1 control-label" for="formRoom">Room</label>
+			<label class="col-sm-1 col-form-label" for="formRoom">Room</label>
 			<div class="col-sm-4">
 % if admin:
 				${self.selectidlist("room", rooms, ("building", "name"), "Select Room", item.room.id, _class="form-control", _id="formRoom")}
 % else:
-				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" readonly/>
+				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" readonly>
 % endif
-				<input type="hidden" name="room_orig" value="${item.room.id if item.room else ""}"/>
+				<input type="hidden" name="room_orig" value="${item.room.id if item.room else ""}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formHandouts">Handouts (Said: ${item.handouts_said.name})</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formHandouts">Handouts (Said: ${item.handouts_said.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("handouts", item.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
-				<input type="hidden" name="handouts_orig" value="${item.handouts.value}"/>
+				<input type="hidden" name="handouts_orig" value="${item.handouts.value}">
 			</div>
-			<label class="col-sm-2 control-label" for="formEval">Evaluations (${item.evaluations.name})</label>
+			<label class="col-sm-2 col-form-label" for="formEval">Evaluations (${item.evaluations.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("evaluations", item.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
-				<input type="hidden" name="evaluations_orig" value="${item.evaluations.value}"/>
+				<input type="hidden" name="evaluations_orig" value="${item.evaluations.value}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formEquipmentBorrowed">Equipment borrowed</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formEquipmentBorrowed">Equipment borrowed</label>
 			<div class="col-sm-3">
-				<input class="form-control" type="text" name="equipment" value="${item.equipment}" id="formEquipmentBorrowed"/>
-				<input type="hidden" name="equipment_orig" value="${item.equipment}"/>
+				<input class="form-control" type="text" name="equipment" value="${item.equipment}" id="formEquipmentBorrowed">
+				<input type="hidden" name="equipment_orig" value="${item.equipment}">
 			</div>
-			<label class="col-sm-2 control-label" for="formEquipmentReturned">Equipment returned</label>
+			<label class="col-sm-2 col-form-label" for="formEquipmentReturned">Equipment returned</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="equip_returned" value="${item.equip_returned}" id="formEquipmentReturned"/>
-				<input type="hidden" name="equip_returned_orig" value="${item.equip_returned}"/>
+				<input class="form-control" type="text" name="equip_returned" value="${item.equip_returned}" id="formEquipmentReturned">
+				<input type="hidden" name="equip_returned_orig" value="${item.equip_returned}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formComment">Comment</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formComment">Comment</label>
 			<div class="col-sm-3">
-				<input class="form-control" type="text" name="comments" value="${item.comments}" id="formComment"/>
-				<input type="hidden" name="comments_orig" value="${item.comments}"/>
+				<input class="form-control" type="text" name="comments" value="${item.comments}" id="formComment">
+				<input type="hidden" name="comments_orig" value="${item.comments}">
 			</div>
-			<label class="col-sm-2 control-label" for="formOther">Other</label>
+			<label class="col-sm-2 col-form-label" for="formOther">Other</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="other" value="${item.other}" id="formOther"/>
-				<input type="hidden" name="other_orig" value="${item.other}"/>
+				<input class="form-control" type="text" name="other" value="${item.other}" id="formOther">
+				<input type="hidden" name="other_orig" value="${item.other}">
 			</div>
 		</div>
 
@@ -90,11 +90,11 @@ faclen = facs.count("\n")
 if faclen < 2:
 	faclen = 2
 %>\
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formFacilitiesReq">Facilities Requested</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formFacilitiesReq">Facilities Requested</label>
 			<div class="col-sm-3">
 				<textarea class="form-control" name="facilities_req" rows="${faclen}" cols="20" id="formFacilitiesReq">${facs}</textarea>
-				<input type="hidden" name="facilities_req_orig" value="${item.facilities_req}"/>
+				<input type="hidden" name="facilities_req_orig" value="${item.facilities_req}">
 			</div>
 <%
 facs = item.facilities_got
@@ -102,16 +102,16 @@ faclen = facs.count("\n")
 if faclen < 2:
 	faclen = 2
 %>\
-			<label class="col-sm-2 control-label" for="formFacilitiesGot">Facilities Available</label>
+			<label class="col-sm-2 col-form-label" for="formFacilitiesGot">Facilities Available</label>
 			<div class="col-sm-5">
 				<textarea class="form-control" name="facilities_got" rows="${faclen}" cols="20" id="formFacilitiesGot">${facs}</textarea>
-				<input type="hidden" name="facilities_got_orig" value="${item.facilities_got}"/>
+				<input type="hidden" name="facilities_got_orig" value="${item.facilities_got}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<div class="col-sm-2 control-label">
-				<input type="hidden" name="came_from" value="${came_from}"/>
+		<div class="form-group row">
+			<div class="col-sm-2 col-form-label">
+				<input type="hidden" name="came_from" value="${came_from}">
 				<button class="btn btn-primary" type="submit" name="form.submitted">Save</button>
 			</div>
 		</div>
@@ -123,7 +123,7 @@ if faclen < 2:
 				<table class="table">
 					<thead class="table-header">
 						<tr>
-							<th><span class="glyphicon glyphicon-trash"><span class="sr-only">Trash</span></span></th>
+							<th><i class="far fa-trash-alt"></i></th>
 							<th>Type</th>
 							<th>First name</th>
 							<th>Last name</th>
@@ -141,8 +141,8 @@ rowstyle = "row-even" if (count % 2 == 0) else "row-odd"
 uurl = request.route_url("admin_person_edit", id=person.id)
 %>
 						<tr class="${rowstyle}">
-							<td><input type="checkbox" name="removeperson" value="${person.id}" /></td>
-							<td><a href="${uurl}" class="linkcell">${assoc.type}</a></td>
+							<td><input type="checkbox" name="removeperson" value="${person.id}" ></td>
+							<td><a href="${uurl}" class="linkcell">${assoc.type.name}</a></td>
 							<td><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
 							<td><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
 							<td><a href="${uurl}" class="linkcell">${person.phone}</a></td>

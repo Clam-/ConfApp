@@ -3,55 +3,55 @@
 	<div class="header">
 		<h2><span>${"Editing" if item.id else "New"} Helper</span>
 % if item.id:
-		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger pull-right" role="button">Delete ${type(item).__name__}</a>
+		<a href="${request.route_url("admin_del", type=item.__tablename__, id=item.id)}" class="btn btn-danger float-right" role="button">Delete ${type(item).__name__}</a>
 % endif
 		</h2>
 	</div>
-	<form class="form-horizontal" action="${request.route_url("admin_helper_edit", id=item.id) if item.id else request.route_url("admin_helper_new")}" method="post">
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formFirstName">First name</label>
+	<form action="${request.route_url("admin_helper_edit", id=item.id) if item.id else request.route_url("admin_helper_new")}" method="post">
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formFirstName">First name</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="firstname" value="${item.firstname}" id="formFirstName"/>
-				<input type="hidden" name="firstname_orig" value="${item.firstname}"/>
+				<input class="form-control" type="text" name="firstname" value="${item.firstname}" id="formFirstName">
+				<input type="hidden" name="firstname_orig" value="${item.firstname}">
 			</div>
 		</div>
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formLastName">Last name</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formLastName">Last name</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="lastname" value="${item.lastname}" id="formLastName"/>
-				<input type="hidden" name="lastname_orig" value="${item.lastname}"/>
+				<input class="form-control" type="text" name="lastname" value="${item.lastname}" id="formLastName">
+				<input type="hidden" name="lastname_orig" value="${item.lastname}">
 			</div>
 		</div>
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formPhone">Phone</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formPhone">Phone</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="phone" value="${item.phone}" id="formPhone"/>
-				<input type="hidden" name="phone_orig" value="${item.phone}"/>
+				<input class="form-control" type="text" name="phone" value="${item.phone}" id="formPhone">
+				<input type="hidden" name="phone_orig" value="${item.phone}">
 			</div>
 		</div>
 		
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formAway">Away</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formAway">Away</label>
 			<div class="col-sm-4 ">
 				<label class="checkbox-inline">
-					<input type="hidden" name="away" value="_" />
-					<input id="formAway" type="checkbox" name="away" value="True" ${'checked="checked"' if item.away else ""} />
-					<input type="hidden" name="away_orig" value="${item.away}"/>
+					<input type="hidden" name="away" value="_" >
+					<input id="formAway" type="checkbox" name="away" value="True" ${'checked="checked"' if item.away else ""} >
+					<input type="hidden" name="away_orig" value="${item.away}">
 				</label>
 			</div>
 		</div>
 		
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formComment">Comment</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formComment">Comment</label>
 			<div class="col-sm-5">
-				<input class="form-control" type="text" name="comment" value="${item.comment}" id="formComment"/>
-				<input type="hidden" name="comment_orig" value="${item.comment}"/>
+				<input class="form-control" type="text" name="comment" value="${item.comment}" id="formComment">
+				<input type="hidden" name="comment_orig" value="${item.comment}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<div class="col-sm-2 control-label">
-				<input type="hidden" name="came_from" value="${came_from}"/>
+		<div class="form-group row">
+			<div class="col-sm-2 col-form-label">
+				<input type="hidden" name="came_from" value="${came_from}">
 				<button class="btn btn-primary" type="submit" name="form.submitted">Save</button>
 			</div>
 		</div>

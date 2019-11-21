@@ -2,17 +2,15 @@
 <div class="container-fluid">
 	<h2>${section.capitalize()} list</h2>
 
-	<form class="form-inline" action="${request.route_url("admin_session_list", day=section)}" method="post">
-		<div class="form-group">
-			<label class="sr-only control-label" for="formName">Search title</label>
-			<input class="form-control" id="formName" type="text" name="search.title" value="${title}" placeholder="Title" autofocus />
+	<form action="${request.route_url("admin_session_list", day=section)}" method="post">
+		<div class="form-group row">
+			<label class="sr-only col-form-label" for="formName">Search title</label>
+			<input class="col-3 form-control" id="formName" type="text" name="search.title" value="${title}" placeholder="Title" autofocus >
+			<label class="sr-only col-form-label" for="formCode">Code</label>
+			<input class="col-1 form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code">
+			<button type="submit" class="col-1 btn btn-primary" name="form.submitted">Search</button>
+			<a href="${request.route_url("admin_session_new")}" class="col-1 btn btn-info ml-auto" role="button">New</a>
 		</div>
-		<div class="form-group">
-			<label class="sr-only control-label" for="formCode">Code</label>
-			<input class="form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code"/>
-		</div>
-		<button type="submit" class="btn btn-default" name="form.submitted">Search</button>
-		<a href="${request.route_url("admin_session_new")}" class="btn btn-info pull-right" role="button">New</a>
 	</form>
 	<table class="table table-condensed">
 		<thead class="table-header">

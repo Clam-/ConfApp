@@ -1,7 +1,7 @@
 <%inherit file="admin-base.mako"/>
 <div class="container">
 	<h2>${section.capitalize()} list</h2>
-	<a href="${request.route_url("admin_user_new")}" class="btn btn-info pull-right" role="button">New</a>
+	<a href="${request.route_url("admin_user_new")}" class="btn btn-info float-right" role="button">New</a>
 	<table class="table table-condensed">
 		<thead class="table-header">
 			<tr>

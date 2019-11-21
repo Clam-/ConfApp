@@ -159,15 +159,15 @@ class Person(Base):
 	firstname = Column(Unicode(100))
 	organisation = Column(Unicode)
 
-	phone = Column(String(100))
-	email = Column(String(100))
+	phone = Column(Unicode(100))
+	email = Column(Unicode(100))
 
-	twitter = Column(String(20))
+	twitter = Column(Unicode(20))
 	bio = Column(Unicode)
 
 	shirt = Column(Boolean)
 	shirtcollect = Column(Boolean)
-	shirtsize = Column(String(30))
+	shirtsize = Column(Unicode(30))
 
 	assoc = relationship("Association", backref="person", cascade="save-update, merge, delete")
 
@@ -216,8 +216,8 @@ class Session(Base):
 	handouts_said = Column(Enum(HandoutSaidType), nullable=False, name="handouts_said", default=HandoutSaidType.NA)
 	evaluations = Column(Enum(HandoutType), nullable=False, name="evaluations", default=HandoutType.At_Desk)
 
-	_equipment = Column(String(50))
-	_equip_returned = Column(String(50))
+	_equipment = Column(Unicode(50))
+	_equip_returned = Column(Unicode(50))
 
 	other = Column(Unicode(200))
 	comments = Column(Unicode(200))
@@ -285,9 +285,9 @@ class Session(Base):
 # 	focusarea = Column(Enum(FocusArea), name="focusarea")
 
 class Building(Base):
-	name = Column(String(50))
-	number = Column(String(20))
-	address = Column(String(100))
+	name = Column(Unicode(50))
+	number = Column(Unicode(20))
+	address = Column(Unicode(100))
 
 	rooms = relationship("Room", backref="building", lazy='joined')
 
@@ -296,8 +296,8 @@ class Building(Base):
 
 
 class Room(Base):
-	name = Column(String(50))
-	room = Column(String(20))
+	name = Column(Unicode(50))
+	room = Column(Unicode(20))
 	capacity = Column(Integer)
 
 	building_id = Column(Integer, ForeignKey('building.id'))
@@ -306,7 +306,7 @@ class Helper(Base):
 	lastname = Column(Unicode(100))
 	firstname = Column(Unicode(100))
 
-	phone = Column(String(100))
+	phone = Column(Unicode(100))
 
 	dispatched = Column(Integer)
 	returned = Column(Integer)

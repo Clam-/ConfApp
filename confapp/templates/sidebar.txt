@@ -1,0 +1,5 @@
+<div id="sidebar" class="col-xs-2">
+	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
+	<table class="table">
+	</table>
+</div>

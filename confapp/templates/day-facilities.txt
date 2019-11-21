@@ -5,8 +5,8 @@ faclen = len(facs)
 if faclen < 2:
 	faclen = 2
 %>
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formFacilitiesReq">Facilities Requested</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formFacilitiesReq">Facilities Requested</label>
 			<div class="col-sm-3">
 				<select id="formFacilitiesReq" class="form-control" name="facilities" size="${faclen}">
 				% for fac in facs:
@@ -20,7 +20,7 @@ faclen = len(facs)
 if faclen < 2:
 	faclen = 2
 %>
-		<label class="col-sm-2 control-label" for="formFacilitiesAvail">Facilities Available</label>
+		<label class="col-sm-2 col-form-label" for="formFacilitiesAvail">Facilities Available</label>
 			<div class="col-sm-3">
 				<select id="formFacilitiesAvail" class="form-control" name="facilities" size="${faclen}">
 				% for fac in facs:

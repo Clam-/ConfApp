@@ -6,66 +6,67 @@
 <div class="container-fluid">
 <div class="col-sm-12">
 	<h3>Editing Check-in for ${section}</h3>
-	<form class="form-horizontal" action="${request.route_url("admin_day_edit", day=section, session=session.id, person=person.id)}" method="post">
-		<div class="form-group">
-			<label class="col-sm-2 control-label">Code</label>
-			<div class="col-sm-3">
-				<p class="form-control-static">${session.code}</p>
+	<form action="${request.route_url("admin_day_edit", day=section, session=session.id, person=person.id)}" method="post">
+		<div class="form-group row">
+			<div class="col-2"></div>
+			<label class="col-1 col-form-label">Code</label>
+			<div class="col-1">
+				<input type="text" readonly class="form-control-plaintext" value="${session.code}">
 			</div>
-			<label class="col-sm-2 control-label">Session title</label>
-			<div class="col-sm-5">
-				<p class="form-control-static">${session.title}</p>
+			<label class="col-2 col-form-label">Session title</label>
+			<div class="col">
+				<input type="text" readonly class="form-control-plaintext" value="${session.title}">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label">Building</label>
-			<div class="col-sm-1">
-				<p class="form-control-static">${session.room.building.number if session.room else "Error."}</p>
+		<div class="form-group row">
+			<div class="col-2"></div>
+			<label class="col-1 col-form-label">Building</label>
+			<div class="col-1">
+				<input type="text" readonly class="form-control-plaintext" value="${session.room.building.number if session.room else "Error."}">
 			</div>
 
-			<label class="col-sm-1 control-label">Address</label>
-			<div class="col-sm-2">
-				<p class="form-control-static">${session.room.building.address if session.room else "Error."}</p>
+			<div class="col">
+				<input type="text" readonly class="form-control-plaintext" value="${session.room.building.name if session.room else "Error."}">
 			</div>
-			<label class="col-sm-1 control-label">Room</label>
-			<div class="col-sm-4">
-				<p class="form-control-static">${session.room.name if session.room else "Error."}</p>
+			<label class="col-1 col-form-label">Room</label>
+			<div class="col-2">
+				<input type="text" readonly class="form-control-plaintext" value="${session.room.name if session.room else "Error."}">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
-		<div class="form-group">
+		<div class="form-group row">
+			<div class="col-2"></div>
 % if not mainen:
-			<label class="col-sm-2 control-label">Handouts <br/>(Said: ${session.handouts_said.name})</label>
-				<p class="col-sm-3 form-control-static">${str(session.handouts)}</p>
-			<label class="col-sm-2 control-label">Evaluations</label>
-				<p class="col-sm-3 form-control-static">${session.evaluations.name}</p>
+			<label class="col col-form-label">Handouts <br>(Said: ${session.handouts_said.name})</label>
+			<input type="text" readonly class="col-1 form-control-plaintext" value="${session.handouts.name}">
+			<label class="col-1 col-form-label">Evaluations</label>
+			<input type="text" readonly class="col-1 form-control-plaintext" value="${session.evaluations.name}">
 % else:
-			<label class="col-sm-2 control-label" for="formHandouts">Handouts (${session.handouts.name}):<br/>Said: ${session.handouts_said.name}</label>
-			<div class="col-sm-3">
+			<label class="col col-form-label" for="formHandouts">Handouts (${session.handouts.name}):<br>Said: ${session.handouts_said.name}</label>
+			<div class="col-2">
 				${self.selectclslist("handouts", session.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
-				<input type="hidden" name="handouts_orig" value="${session.handouts.value}"/>
+				<input type="hidden" name="handouts_orig" value="${session.handouts.value}">
 			</div>
-			<label class="col-sm-2 control-label" for="formEval">Evaluations (${session.evaluations.name})</label>
-			<div class="col-sm-3">
+			<label class="col col-form-label" for="formEval">Evaluations (${session.evaluations.name})</label>
+			<div class="col-2">
 				${self.selectclslist("evaluations", session.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
-				<input type="hidden" name="evaluations_orig" value="${session.evaluations.value}"/>
+				<input type="hidden" name="evaluations_orig" value="${session.evaluations.value}">
 			</div>
 % endif
+			<div class="col-2"></div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formComment">Comment</label>
-			<div class="col-sm-3">
-				<input class="form-control" type="text" name="comments" value="${session.comments}" id="formComment"/>
-				<input type="hidden" name="comments_orig" value="${session.comments}"/>
+		<div class="form-group row">
+			<div class="col-2"></div>
+			<label class="col-2 col-form-label" for="formComment">Session Comment</label>
+			<div class="col">
+				<input class="form-control" type="text" name="comments" value="${session.comments}" id="formComment">
+				<input type="hidden" name="comments_orig" value="${session.comments}">
 			</div>
-% if helpers_show and mainen:
-			<label class="col-sm-2 control-label" for="formHelper"><strong>HELPER:</strong></label>
-			<div class="col-sm-3">
-				${self.selectidlist("helper", helpers, ("firstname", "lastname"), "Select Helper", _class="form-control", _id="formHelper")}
-			</div>
-% endif
+		<div class="col-2"></div>
 		</div>
 
 		<div class="row">
@@ -73,7 +74,7 @@
 			<div class="col-sm-8 assoc-list">
 				<div class="pad-top"><p><span class="h4">Participants</span> <span class="h5">(Click checkbox and click Save to check-in)</span></p></div>
 				<table class="table">
-					<thead class="table-header">
+					<thead class="thead-light">
 						<tr>
 							<th><abbr title="Main hall registration">Main</th>
 							<th><abbr title="Sports Centre registration">Sports</th>
@@ -102,7 +103,7 @@ else:
 	rowstyle = "row-even" if (count % 2 == 0) else "row-odd"
 person_id = iperson.id
 uurl = request.route_url("admin_person_edit", id=person_id)
-if session.room and (session.room.building.number == "1") or session.room.building.number == "23": # or session.room.building.number == "60"
+if session.sport:
 	sporttick = u"\u2714" if assoc.registered_sport else u"\u2717"
 else:
 	sporttick = "-"
@@ -119,16 +120,31 @@ if iperson.shirtcollect:
 % if not mainen:
 							<td><span class="linkcell ${"text-success" if assoc.registered else "text-muted"}">${u"\u2714" if assoc.registered else u"\u2717"}</span></td>
 % else:
-							<td><input type="checkbox" name="registered" value="${person_id}" ${'checked="checked"' if assoc.registered else ""} /> </td>
+							<td>
+								<div class="custom-control custom-checkbox">
+								  <input id="m${person_id}" class="custom-control-input" type="checkbox" name="registered" value="${person_id}" ${'checked="checked"' if assoc.registered else ""} >
+								  <label class="custom-control-label" for="m${person_id}"></label>
+								</div>
+							</td>
 % endif
-% if sporttick != "-" and sporten:
-							<td><input type="checkbox" name="registered_sport" value="${person_id}" ${'checked="checked"' if assoc.registered_sport else ""} /> </td>
+% if session.sport and sporten:
+							<td>
+								<div class="custom-control custom-checkbox">
+									<input id="s${person_id}" class="custom-control-input" type="checkbox" name="registered_sport" value="${person_id}" ${'checked="checked"' if assoc.registered_sport else ""} >
+									<label class="custom-control-label" for="s${person_id}"></label>
+								</div>
+							</td>
 % else:
 							<td><span class="linkcell ${"text-success" if assoc.registered_sport else "text-muted"}">${sporttick}</span></td>
 % endif
 % if mainen:
 %  if iperson.shirt:
-							<td><input type="checkbox" name="shirtcollect" value="${person_id}" ${'checked="checked"' if iperson.shirtcollect else ""} /> </td>
+							<td>
+								<div class="custom-control custom-checkbox">
+									<input id="t${person_id}" class="custom-control-input" type="checkbox" name="shirtcollect" value="${person_id}" ${'checked="checked"' if iperson.shirtcollect else ""} >
+									<label class="custom-control-label" for="t${person_id}"></label>
+								</div>
+							</td>
 %  else:
 							<td><span class="linkcell">${u"\u2717"}</span></td>
 %  endif
@@ -136,7 +152,7 @@ if iperson.shirtcollect:
 % endif
 							<td><a href="${uurl}" class="linkcell">${iperson.lastname}</a></td>
 							<td><a href="${uurl}" class="linkcell">${iperson.firstname}</a></td>
-							<td><a href="${uurl}" class="linkcell">${assoc.type}</a></td>
+							<td><a href="${uurl}" class="linkcell">${assoc.type.name}</a></td>
 						</tr>
 <% count += 1 %>\
 % endfor
@@ -145,75 +161,68 @@ if iperson.shirtcollect:
 			</div>
 			<div class="col-sm-2">
 % if mainen:
-				<input type="hidden" name="registered_orig" value="${",".join(regids)}"/>
-				<input type="hidden" name="shirtcollect_orig" value="${",".join(collectids)}"/>
+				<input type="hidden" name="registered_orig" value="${",".join(regids)}">
+				<input type="hidden" name="shirtcollect_orig" value="${",".join(collectids)}">
 % endif
 % if sporttick != "-" and sporten:
-				<input type="hidden" name="registered_sport_orig" value="${",".join(regids_sport)}"/>
+				<input type="hidden" name="registered_sport_orig" value="${",".join(regids_sport)}">
 % endif
 			</div>
 		</div>
-		<div class="form-group">
-			<div class="col-sm-2 control-label">
-				<input type="hidden" name="name" value="${name}"/>
-				<input type="hidden" name="code" value="${code}"/>
-				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save"/>
+		<div class="form-group row">
+			<div class="col-sm-2 col-form-label">
+				<input type="hidden" name="name" value="${name}">
+				<input type="hidden" name="code" value="${code}">
+				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save">
 			</div>
-			<div class="col-sm-1 control-label">
-				<input class="btn btn-default" type="submit" name="form.cancelled" value="Cancel"/>
+			<div class="col-sm-1 col-form-label">
+				<input class="btn btn-secondary" type="submit" name="form.cancelled" value="Cancel">
 			</div>
 		</div>
 
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formEquipmentBorrowed">Equipment borrowed</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formEquipmentBorrowed">Equipment borrowed</label>
 			<div class="col-sm-3">
-				<input class="form-control" type="text" name="equipment" value="${session.equipment}" id="formEquipmentBorrowed"/>
-				<input type="hidden" name="equipment_orig" value="${session.equipment}"/>
+				<input class="form-control" type="text" name="equipment" value="${session.equipment}" id="formEquipmentBorrowed">
+				<input type="hidden" name="equipment_orig" value="${session.equipment}">
 			</div>
-			<label class="col-sm-2 control-label" for="formEquipmentReturned">Equipment returned</label>
+			<label class="col-sm-2 col-form-label" for="formEquipmentReturned">Equipment returned</label>
 			<div class="col-sm-3">
-				<input class="form-control" type="text" name="equip_returned" value="${session.equip_returned}" id="formEquipmentReturned"/>
-				<input type="hidden" name="equip_returned_orig" value="${session.equip_returned}"/>
+				<input class="form-control" type="text" name="equip_returned" value="${session.equip_returned}" id="formEquipmentReturned">
+				<input type="hidden" name="equip_returned_orig" value="${session.equip_returned}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label" for="formOther">Other</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label" for="formOther">Other</label>
 			<div class="col-sm-3">
-				<input class="form-control" type="text" name="other" value="${session.other}" id="formOther"/>
-				<input type="hidden" name="other_orig" value="${session.other}"/>
+				<input class="form-control" type="text" name="other" value="${session.other}" id="formOther">
+				<input type="hidden" name="other_orig" value="${session.other}">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<div class="col-sm-2 control-label">
-				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save"/>
+		<div class="form-group row">
+			<div class="col-sm-2 col-form-label">
+				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save">
 			</div>
-			<div class="col-sm-1 control-label">
-				<input class="btn btn-default" type="submit" name="form.cancelled" value="Cancel"/>
+			<div class="col-sm-1 col-form-label">
+				<input class="btn btn-secondary" type="submit" name="form.cancelled" value="Cancel">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label class="col-sm-2 control-label">Booked</label>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Booked</label>
 			<div class="col-sm-1">
-				<p class="form-control-static">${session.booked if session.booked else ""}</p>
+				<input type="text" readonly class="form-control-plaintext" value="${session.booked if session.booked else ''}">
 			</div>
 
-			<label class="col-sm-1 control-label">Capacity</label>
+			<label class="col-sm-1 col-form-label">Capacity</label>
 			<div class="col-sm-2">
-				<p class="form-control-static">${session.max if session.max else ""}</p>
+				<input type="text" readonly class="form-control-plaintext" value="${session.max if session.max else ''}">
 			</div>
 		</div>
 
 	</form>
 </div>
-<!--
-<div id="sidebar" class="col-xs-2">
-	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
-	<table class="table">
-	</table>
-</div>
--->
 </div>

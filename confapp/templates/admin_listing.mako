@@ -1,5 +1,5 @@
 <%inherit file="admin-base.mako"/>
-<script type="text/javascript" src="/files/js/sidebar.js"></script>
+<!-- <script type="text/javascript" src="/files/js/sidebar.js"></script> -->
 <div class="container-fluid">
 % if logged_in == "main" and helpers:
 <div class="col-sm-10">
@@ -8,19 +8,17 @@
 	<div class="header">
 		<h3>Registrations for ${day}</h3>
 	</div>
-	<form class="form-inline" action="${request.route_url("admin_day_list", day=day)}" method="post">
-		<div class="form-group">
-			<label class="sr-only control-label" for="formName">Search name</label>
-			<input class="form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name" autofocus />
+	<form action="${request.route_url("admin_day_list", day=day)}" method="post">
+		<div class="form-group row">
+			<label class="sr-only col-form-label" for="formName">Search name</label>
+			<input class="col-3 form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name" autofocus >
+			<label class="sr-only col-form-label" for="formCode">Code</label>
+			<input class="col-1 form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code">
+			<button type="submit" class="col-1 btn btn-primary" name="form.submitted">Search</button>
 		</div>
-		<div class="form-group">
-			<label class="sr-only control-label" for="formCode">Code</label>
-			<input class="form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code"/>
-		</div>
-		<button type="submit" class="btn btn-default" name="form.submitted">Search</button>
 	</form>
-	<table class="table table-condensed">
-		<thead class="table-header">
+	<table class="table table-sm">
+		<thead class="thead-light">
 			<tr>
 				<th><abbr title="Main check-in">Mn</abbr></th>
 				<th><abbr title="Sports Centre check-in">Sp</abbr></th>
@@ -101,7 +99,7 @@ sport = False
 % endif
 			<td><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
 			<td><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
-			<td><a href="${uurl}" class="linkcell">${item.type}</a></td>
+			<td><a href="${uurl}" class="linkcell">${item.type.name}</a></td>
 
 			<td class="code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
 			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
@@ -112,8 +110,8 @@ sport = False
 % endif
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>
-			<td><a href="${uurl}" class="linkcell">${session.handouts}</a></td>
-			<td><a href="${uurl}" class="linkcell">${session.evaluations}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.handouts.name}</a></td>
+			<td><a href="${uurl}" class="linkcell">${session.evaluations.name}</a></td>
 % if other and len(other) > 5:
 			<td><a href="${uurl}" class="linkcell"><abbr title="${other}">${other[:5]}</abbr></a></td>
 % else:
@@ -128,7 +126,7 @@ sport = False
 	<%	count += 1 %>
 % endfor
 	</table>
-	<p>Page: ${page.pager()}</p>
+	<p>Page: ${page.pager() |n}</p>
 </div>
 % if logged_in == "main" and helpers:
 <div id="sidebar" class="col-xs-2">
