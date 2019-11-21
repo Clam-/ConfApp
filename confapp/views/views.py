@@ -123,7 +123,7 @@ class AdminListing(BaseAdminView):
 		page = DummyPage(DBSession.query(Association).join(Association.session, Association.person).\
 			options(contains_eager(Association.session)).options(contains_eager(Association.person)).\
 			filter(Session.day == day).filter(Association.registered == True | Association.registered_sport == True).order_by(Session.code).all())
-		return dict(section=day, page=page)
+		return dict(section=day.name, page=page)
 
 	@view_config(route_name='admin_special_home', renderer='admin_special.mako', permission='checkin')
 	def admin_special_list(self):
@@ -205,7 +205,7 @@ class AdminListing(BaseAdminView):
 				filter(Session.cancelled == False).\
 				filter(Session.day == day).order_by(*order_by), HITS)
 
-		return dict(section=day, page=page, name=name, code=code, marker=self.request.params.get("marker"),
+		return dict(section=day.name, page=page, name=name, code=code, marker=self.request.params.get("marker"),
 			time=time(), helpers=self.request.registry.settings["helpers"] == "true")
 
 

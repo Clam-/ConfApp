@@ -4,7 +4,7 @@
 % if logged_in == "main" and helpers:
 <div class="col-sm-10">
 % endif
-<% day = section.name %>
+<% day = section %>
 	<div class="header">
 		<h3>Registrations for ${day}</h3>
 	</div>
