@@ -53,6 +53,13 @@ CSV_PEOPLE_SHIRTM = ("Complimentary Speaker", "Complimentary Registration")
 CSV_CAPS_CODE = 0
 CSV_CAPS_BOOKED = 1
 CSV_CAPS_MAX = 2
+CSV_HOST_FNAME = 1
+CSV_HOST_LNAME = 2
+CSV_HOST_EMAIL = 3
+CSV_HOST_PHONE = (4,5)
+CSV_HOST_ORG = 6
+CSV_HOST_RNGS = 10
+CSV_HOST_RNGF = 17 # last col +1 for slicing.
 
 def read_csv(fname):
 	with open(fname, "rb") as f:

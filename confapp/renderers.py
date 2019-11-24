@@ -1,16 +1,16 @@
 from unicodecsv import writer
-from io import StringIO
+from io import BytesIO
 
 class CSVRenderer(object):
     def __init__(self, info):
         pass
 
     def __call__(self, value, system):
-        fout = StringIO()
-        writer = writer(fout, encoding='utf-8')
+        fout = BytesIO()
+        cw = writer(fout, encoding='utf-8')
 
-        writer.writerow(value['header'])
-        writer.writerows(value['rows'])
+        cw.writerow(value['header'])
+        cw.writerows(value['rows'])
 
         resp = system['request'].response
         resp.content_type = 'text/csv'

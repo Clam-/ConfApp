@@ -56,7 +56,9 @@ from ..libs.helpers import read_csv, convertfile, TIME, CODE, CODE2,\
 	CSV_VENUE_ROOM, CSV_VENUE_BUILDING, CSV_PEOPLE_FNAME, CSV_PEOPLE_LNAME,\
 	CSV_PEOPLE_ORG, CSV_PEOPLE_RNGS, CSV_PEOPLE_RNGF, CSV_PEOPLE_PHONE,\
 	CSV_PEOPLE_EMAIL, CSV_PEOPLE_ORGOTHER, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM,\
-	CODE_TIMEMAP, CSV_CAPS_CODE, CSV_CAPS_BOOKED, CSV_CAPS_MAX
+	CODE_TIMEMAP, CSV_CAPS_CODE, CSV_CAPS_BOOKED, CSV_CAPS_MAX, CSV_HOST_FNAME,\
+	CSV_HOST_LNAME, CSV_HOST_EMAIL, CSV_HOST_PHONE, CSV_HOST_ORG, CSV_HOST_RNGS,\
+	CSV_HOST_RNGF
 
 from time import time
 from os import unlink
@@ -730,9 +732,9 @@ class AdminAdmin(BaseAdminView):
 						request.session.flash("Failure from processShirt")
 						return HTTPFound(location = request.route_url('admin_admin'))
 				elif t == "hosts1":
-					if not self.processHostPeopleBad(row):
+					if not self.processHost(row):
 						abort()
-						request.session.flash("Failure from processHostPeopleBad")
+						request.session.flash("Failure from processHost")
 						return HTTPFound(location = request.route_url('admin_admin'))
 				elif t == "hosts2":
 					if not self.processHostBad(row):
@@ -1015,22 +1017,27 @@ class AdminAdmin(BaseAdminView):
 
 	def processHost(self, row):
 		# Create or get Person
-		firstname = row[0].strip()
-		lastname = row[1].strip()
+		firstname = row[CSV_HOST_FNAME].strip()
+		lastname = row[CSV_HOST_LNAME].strip()
 		if not firstname or not lastname: return True
 
-		email = row[3].strip()
-		p = DBSession.query(Person).filter(Person.firstname == firstname, Person.lastname == lastname).first()
+		email = row[CSV_HOST_EMAIL].strip()
+		p = DBSession.query(Person).filter(Person.firstname == firstname,
+			Person.lastname == lastname, Person.email == email).first()
 		if not p:
-			phone = row[4].strip()
-			p = Person(firstname=firstname, lastname=lastname, phone=phone, email=email)
+			phone = []
+			for ph in CSV_HOST_PHONE:
+				if row[ph].strip(): phone.append(row[ph].strip())
+			org = row[CSV_HOST_ORG].strip()
+			p = Person(firstname=firstname, lastname=lastname, phone="\n".join(phone), email=email)
 			DBSession.add(p)
 			DBSession.flush()
 		# Process their session
-		for x in row[5:8]:
-			print(x)
+		for x in row[CSV_HOST_RNGS:CSV_HOST_RNGF]:
+			x = x.strip()
+			if not x: continue
 			if CODE.match(x[0:3]):
-				self.addPersonToSession(p, x[0:3], PersonType.host)
+				self.addPersonToSession(p, x[0:3], PersonType.Host)
 			else:
 				print("BAD CODE FOR (%s, %s)" % (firstname, lastname))
 				self.request.session.flash("B")
@@ -1158,6 +1165,27 @@ class AdminAdmin(BaseAdminView):
 			self.request.session.flash("x{0}->{1}{2}".format(p.id, code, t.value))
 			print("\n\nCould not find Session: (%s)\n\n" % code)
 
+	@view_config(route_name='nopresenter', renderer='csv', permission='admin')
+	def nopresenter(self):
+		#Really bad and slow and not optimal
+		# select all sessions not cancelled
+		nopres = []
+		sessions = DBSession.query(Session).filter(Session.cancelled == False).all()
+		for s in sessions:
+			pres = 0
+			for a in s.assoc:
+				if a.type == PersonType.Presenter: pres += 1
+			if pres < 1: nopres.append(s)
+
+		header = ["CODE", "Name"]
+		rows = (
+			(
+				item.code,
+				item.title
+			)
+			for item in nopres
+		)
+		return dict(header=header, rows=rows)
 
 class SplashView(BaseAdminView):
 	@view_config(route_name='admin_home', renderer='admin_home.mako', permission='splash')
