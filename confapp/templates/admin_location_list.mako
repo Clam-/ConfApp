@@ -2,8 +2,8 @@
 <div class="container">
 	<h2>${section.capitalize()} list</h2>
 	<a href="${request.route_url("admin_room_new")}" class="btn btn-info float-right" role="button">New</a>
-	<table class="table table-condensed">
-		<thead class="table-header">
+	<table class="table table-sm">
+		<thead class="thead-light">
 			<tr>
 				<th> ID </th>
 				<th> Building </th>
@@ -13,9 +13,9 @@
 		</thead>
 	<% count = 0 %>
 % for item in page.items:
-	<%	
+	<%
 		rowstyle = "row-even" if count % 2 == 0 else "row-odd"
-		
+
 		surl = request.route_url("admin_room_edit", id=item.id)
 	%>
 		<tr class="${rowstyle}">

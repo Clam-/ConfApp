@@ -12,8 +12,8 @@
 			<a href="${request.route_url("admin_session_new")}" class="col-1 btn btn-info ml-auto" role="button">New</a>
 		</div>
 	</form>
-	<table class="table table-condensed">
-		<thead class="table-header">
+	<table class="table table-sm">
+		<thead class="thead-light">
 			<tr>
 				<th> Code </th>
 				<th> Session title </th>

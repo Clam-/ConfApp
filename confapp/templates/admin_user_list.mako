@@ -2,8 +2,8 @@
 <div class="container">
 	<h2>${section.capitalize()} list</h2>
 	<a href="${request.route_url("admin_user_new")}" class="btn btn-info float-right" role="button">New</a>
-	<table class="table table-condensed">
-		<thead class="table-header">
+	<table class="table table-sm">
+		<thead class="thead-light">
 			<tr>
 				<th> ID </th>
 				<th> Username </th>

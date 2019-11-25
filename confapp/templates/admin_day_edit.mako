@@ -73,7 +73,7 @@
 			<div class="col-sm-2"></div>
 			<div class="col-sm-8 assoc-list">
 				<div class="pad-top"><p><span class="h4">Participants</span> <span class="h5">(Click checkbox and click Save to check-in)</span></p></div>
-				<table class="table">
+				<table class="table table-sm">
 					<thead class="thead-light">
 						<tr>
 							<th><abbr title="Main hall registration">Main</th>

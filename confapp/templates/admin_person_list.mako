@@ -16,8 +16,8 @@
 	</form>
 
 
-	<table class="table">
-		<thead class="table-header">
+	<table class="table table-sm">
+		<thead class="thead-light">
 			<tr>
 				<th> ID </th>
 				<th> Last name </th>
