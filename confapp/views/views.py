@@ -58,7 +58,7 @@ from ..libs.helpers import read_csv, convertfile, TIME, CODE, CODE2,\
 	CSV_PEOPLE_EMAIL, CSV_PEOPLE_ORGOTHER, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM,\
 	CODE_TIMEMAP, CSV_CAPS_CODE, CSV_CAPS_BOOKED, CSV_CAPS_MAX, CSV_HOST_FNAME,\
 	CSV_HOST_LNAME, CSV_HOST_EMAIL, CSV_HOST_PHONE, CSV_HOST_ORG, CSV_HOST_RNGS,\
-	CSV_HOST_RNGF
+	CSV_HOST_RNGF, CSV_HAND_CODE, CSV_HAND_COPY, CSV_HAND_PRINT
 
 from time import time
 from os import unlink
@@ -1112,8 +1112,8 @@ class AdminAdmin(BaseAdminView):
 
 	def processHandouts(self, row):
 		# Skip non handout
-		if not row[1].strip(): return True
-		if not row[3].strip(): return True
+		if not row[CSV_HAND_CODE].strip(): return True
+		if not row[CSV_HAND_COPY].strip(): return True
 
 		# Process the session
 		session = row[0].strip()
@@ -1122,11 +1122,12 @@ class AdminAdmin(BaseAdminView):
 			c = session[0:4]
 			if not CODE2.match(c): c = None
 		if c:
-			DBSession.query(Session).filter(Session.code == c).one().handouts_said = HandoutSaidType.At_Desk
-			if row[4].strip():
-				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.At_Desk
+			s = DBSession.query(Session).filter(Session.code == c).one()
+			s.handouts_said = HandoutSaidType.ACHPER_Copy
+			if row[CSV_HAND_PRINT].strip():
+				s.handouts = HandoutType.At_Desk
 			else:
-				DBSession.query(Session).filter(Session.code == c).one().handouts = HandoutType.NA
+				s.handouts = HandoutType.NA
 		return True
 
 	def processSessionCaps(self, row):

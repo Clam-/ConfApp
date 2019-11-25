@@ -60,6 +60,9 @@ CSV_HOST_PHONE = (4,5)
 CSV_HOST_ORG = 6
 CSV_HOST_RNGS = 10
 CSV_HOST_RNGF = 17 # last col +1 for slicing.
+CSV_HAND_CODE = 0
+CSV_HAND_COPY = 3
+CSV_HAND_PRINT = 4
 
 def read_csv(fname):
 	with open(fname, "rb") as f:
