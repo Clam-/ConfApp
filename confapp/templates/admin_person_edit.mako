@@ -89,8 +89,8 @@
 			<div class="col-sm-2"></div>
 			<div class="col-sm-8 assoc-list">
 				<div class="pad-top"><p><span class="h4">Sessions</span></p></div>
-				<table class="table">
-					<thead class="table-header">
+				<table class="table table-sm">
+					<thead class="thead-light">
 						<tr>
 							<th><i class="far fa-trash-alt"></i></th>
 							<th>Type</th>

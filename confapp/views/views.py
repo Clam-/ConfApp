@@ -824,7 +824,7 @@ class AdminAdmin(BaseAdminView):
 				day = "F"
 				sesstime = CODE_TIMEMAP[c]
 			else:
-				time = CODE_TIMEMAP[c[0]]
+				sesstime = CODE_TIMEMAP[c[0]]
 			if room.building.number == 1: sport = True
 			else: sport = False
 			s = Session(code=c, title=title, sessiontype=SessionType.NA,

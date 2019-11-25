@@ -170,6 +170,7 @@ if iperson.shirtcollect:
 			</div>
 		</div>
 		<div class="form-group row">
+			<div class="col-2"></div>
 			<div class="col-sm-2 col-form-label">
 				<input type="hidden" name="name" value="${name}">
 				<input type="hidden" name="code" value="${code}">
@@ -178,40 +179,52 @@ if iperson.shirtcollect:
 			<div class="col-sm-1 col-form-label">
 				<input class="btn btn-secondary" type="submit" name="form.cancelled" value="Cancel">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
 
 		<div class="form-group row">
+			<div class="col-2"></div>
 			<label class="col-sm-2 col-form-label" for="formEquipmentBorrowed">Equipment borrowed</label>
-			<div class="col-sm-3">
+			<div class="col-sm-2">
 				<input class="form-control" type="text" name="equipment" value="${session.equipment}" id="formEquipmentBorrowed">
 				<input type="hidden" name="equipment_orig" value="${session.equipment}">
 			</div>
 			<label class="col-sm-2 col-form-label" for="formEquipmentReturned">Equipment returned</label>
-			<div class="col-sm-3">
+			<div class="col-sm-2">
 				<input class="form-control" type="text" name="equip_returned" value="${session.equip_returned}" id="formEquipmentReturned">
 				<input type="hidden" name="equip_returned_orig" value="${session.equip_returned}">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
 		<div class="form-group row">
+			<div class="col-2"></div>
 			<label class="col-sm-2 col-form-label" for="formOther">Other</label>
 			<div class="col-sm-3">
 				<input class="form-control" type="text" name="other" value="${session.other}" id="formOther">
 				<input type="hidden" name="other_orig" value="${session.other}">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
 		<div class="form-group row">
+			<div class="col-2"></div>
 			<div class="col-sm-2 col-form-label">
 				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save">
 			</div>
 			<div class="col-sm-1 col-form-label">
 				<input class="btn btn-secondary" type="submit" name="form.cancelled" value="Cancel">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
 		<div class="form-group row">
+			<div class="col-2"></div>
+			<label class="col-sm-2 col-form-label">Time</label>
+			<div class="col-sm-1">
+				<input type="text" readonly class="form-control-plaintext" value="${session.time if session.time else ''}">
+			</div>
 			<label class="col-sm-2 col-form-label">Booked</label>
 			<div class="col-sm-1">
 				<input type="text" readonly class="form-control-plaintext" value="${session.booked if session.booked else ''}">
@@ -221,6 +234,7 @@ if iperson.shirtcollect:
 			<div class="col-sm-2">
 				<input type="text" readonly class="form-control-plaintext" value="${session.max if session.max else ''}">
 			</div>
+			<div class="col-2"></div>
 		</div>
 
 	</form>
