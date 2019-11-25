@@ -80,9 +80,7 @@ class DummyPage:
 
 def sports_helper(item):
 	session = item.session
-	if session.room and (session.room.building.number == "1"): sport = True #or session.room.building.number == "60"
-	else: sport = False
-	if sport:
+	if session.sport:
 		sporttick = "Y" if item.registered_sport else "N"
 	else:
 		sporttick = ""
