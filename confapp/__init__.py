@@ -42,6 +42,7 @@ def main(global_config, **settings):
     config.add_route('admin_del', '/del/{type}/{id}')
 
     config.add_route('admin_person_new', '/person/edit/')
+    config.add_route('admin_person_session', '/person/edit/s/{code}')
     config.add_route('admin_person_edit', '/person/edit/{id}')
     config.add_route('admin_person_list', '/person/')
 

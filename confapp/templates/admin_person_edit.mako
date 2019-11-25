@@ -1,5 +1,6 @@
 <%inherit file="admin-base.mako"/>\
 <%page args="mainen, sporten, admin"/>\
+<%! from confapp.models import PersonType %>
 <div class="container">
 	<div class="header">
 		<h2><span>${"Editing" if item.id else "New"} Person</span>
@@ -33,7 +34,7 @@
 		<div class="form-group row">
 			<label class="col-sm-2 col-form-label" for="formEmail">Email</label>
 			<div class="col-sm-5">
-				<textarea class="form-control" name="email" rows="2" cols="20" id="formEmail">${item.email}</textarea>
+				<input class="form-control" name="email" id="formEmail" value="${item.email}">
 				<input type="hidden" name="email_orig" value="${item.email}">
 			</div>
 		</div>
@@ -71,11 +72,11 @@
 
 		<div class="form-group row">
 			<label class="col-sm-2 col-form-label" for="formAddSess">Add session (enter code AND type)</label>
-			<div class="col-sm-5"><input class="form-control" type="text" name="addsession" value="" id="formAddSess" placeholder="Code"></div>
+			<div class="col-sm-5"><input class="form-control" type="text" name="addsession" value="${code}" id="formAddSess" placeholder="Code"></div>
 		</div>
 		<div class="form-group row">
 			<label class="col-sm-2 col-form-label" for="formAddType">Type</label>
-			<div class="col-sm-5">${self.selectclslist("type", "", self.attr.PersonType, _class="form-control", _id="formAddType")}</div>
+			<div class="col-sm-5">${self.selectclslist("type", PersonType.Presenter, self.attr.PersonType, _class="form-control", _id="formAddType")}</div>
 		</div>
 
 		<div class="form-group row">

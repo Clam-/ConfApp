@@ -171,13 +171,16 @@ if iperson.shirtcollect:
 		</div>
 		<div class="form-group row">
 			<div class="col-2"></div>
-			<div class="col-sm-2 col-form-label">
+			<div class="col-sm-1 col-form-label">
 				<input type="hidden" name="name" value="${name}">
 				<input type="hidden" name="code" value="${code}">
 				<input class="btn btn-primary" type="submit" name="form.submitted" value="Save">
 			</div>
 			<div class="col-sm-1 col-form-label">
 				<input class="btn btn-secondary" type="submit" name="form.cancelled" value="Cancel">
+			</div>
+			<div class="col-sm-2 col-form-label">
+				<input class="btn btn-info" type="submit" name="form.add" value="Save and Add Person">
 			</div>
 			<div class="col-2"></div>
 		</div>

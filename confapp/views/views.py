@@ -324,9 +324,20 @@ class AdminEdit(BaseAdminView):
 		person = item.person
 		session = item.session
 		assocs = session.assoc
-		if 'form.submitted' in params or 'form.cancelled' in params:
-			if 'form.submitted' in params:
-				error = False
+		if 'form.submitted' in params or 'form.cancelled' in params or 'form.add' in params:
+			# build edit page redirect URL
+			anchor = "%s-%s" % (sid, pid)
+			query = (("marker", anchor),)
+			if name and code:
+				eurl = request.route_url('admin_day_edit_nc', session=sid, person=pid, day=oday, name=name, code=code, _anchor=anchor, _query=query)
+			elif name:
+				eurl = request.route_url('admin_day_edit_n', session=sid, person=pid, day=oday, name=name, _anchor=anchor, _query=query)
+			elif code:
+				eurl = request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code, _anchor=anchor, _query=query)
+			else:
+				eurl = request.route_url('admin_day_edit', session=sid, person=pid, day=oday, _anchor=anchor, _query=query)
+			if 'form.submitted' in params or 'form.add' in params:
+				helpererror = False
 				sid = session.id
 				pid = person.id
 
@@ -352,42 +363,45 @@ class AdminEdit(BaseAdminView):
 						try:
 							helper = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None, Helper.id == helper).one()
 							if not helper:
-								error = True
+								helpererror = True
 								self.request.session.flash("Error: Cannot assign Helper. Please select another." )
 							else:
 								helper.session = session
 								helper.returned = None
 								helper.dispatched = time()
 						except (NoResultFound, MultipleResultsFound):
-							error = True
+							helpererror = True
 							self.request.session.flash("Error: Cannot assign Helper. Please select another." )
 
 				# TODO: attempt to do commit/flush to catch any DB backend errors
 				self.doFlush(location="admin_day_list", day=oday, session=sid, person=pid)
 
-				anchor = "%s-%s" % (sid, pid)
-				query = (("marker", anchor),)
-				if error:
+				if helpererror:
 					if name and code:
-						return HTTPFound(location=request.route_url('admin_day_edit_nc', session=sid, person=pid, day=oday, name=name, code=code, _anchor=anchor, _query=query))
+						return HTTPFound(location=eurl)
 					elif name:
-						return HTTPFound(location=request.route_url('admin_day_edit_n', session=sid, person=pid, day=oday, name=name, _anchor=anchor, _query=query))
+						return HTTPFound(location=eurl)
 					elif code:
-						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code, _anchor=anchor, _query=query))
+						return HTTPFound(location=eurl)
 					else:
-						return HTTPFound(location=request.route_url('admin_day_edit_c', session=sid, person=pid, day=oday, code=code, _anchor=anchor, _query=query))
+						return HTTPFound(location=eurl)
 
-			anchor = "%s-%s" % (sid, pid)
-			query = (("marker", anchor),)
-			print("REDIRECT TO:", name, code)
+			# build redirect URL
 			if name and code:
-				return HTTPFound(location=request.route_url('admin_day_search', day=oday, name=name, code=code, _anchor=anchor, _query=query))
+				rurl = request.route_url('admin_day_search', day=oday, name=name, code=code, _anchor=anchor, _query=query)
 			elif name:
-				return HTTPFound(location=request.route_url('admin_day_search_n', day=oday, name=name, _anchor=anchor, _query=query))
+				rurl = request.route_url('admin_day_search_n', day=oday, name=name, _anchor=anchor, _query=query)
 			elif code:
-				return HTTPFound(location=request.route_url('admin_day_search_c', day=oday, code=code, _anchor=anchor, _query=query))
+				rurl = request.route_url('admin_day_search_c', day=oday, code=code, _anchor=anchor, _query=query)
 			else:
-				return HTTPFound(location=request.route_url('admin_day_list', day=oday, _anchor=anchor, _query=query))
+				rurl = request.route_url('admin_day_list', day=oday, _anchor=anchor, _query=query)
+			# If add Person:
+			if 'form.add' in params:
+				return HTTPFound(location=request.route_url("admin_person_session",
+					code=session.code, _query=(("came_from", eurl),)))
+			# Redirect:
+			return HTTPFound(location=rurl)
+
 
 		if helpers_show:
 			helpers = DBSession.query(Helper).filter(Helper.away==False, Helper.session == None).order_by(Helper.away, Helper.returned, Helper.firstname).all()
@@ -452,9 +466,12 @@ class AdminEdit(BaseAdminView):
 
 	@view_config(route_name='admin_person_new', renderer='admin_person_edit.mako', permission='checkin')
 	@view_config(route_name='admin_person_edit', renderer='admin_person_edit.mako', permission='checkin')
+	@view_config(route_name='admin_person_session', renderer='admin_person_edit.mako', permission='checkin')
 	def admin_person_edit(self):
 		request = self.request
 		params = request.params
+		code = self.request.matchdict.get("code")
+		next = params.get("came_from")
 
 		item = self.getItemOrCreate(Person)
 
@@ -499,10 +516,11 @@ class AdminEdit(BaseAdminView):
 					self.request.session.flash("Removed session ID(s): %s" % remthis)
 
 			self.doFlush(item=item)
-
+			if next:
+				return HTTPFound(location=next)
 			return HTTPFound(location=request.route_url('admin_person_edit', id=item.id))
 
-		return dict(section="person", item=item, came_from="",)
+		return dict(section="person", item=item, came_from=next, code=code,)
 
 	@view_config(route_name='admin_room_new', renderer='admin_location_edit.mako', permission='checkin')
 	@view_config(route_name='admin_room_edit', renderer='admin_location_edit.mako', permission='checkin')
