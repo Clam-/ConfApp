@@ -221,8 +221,8 @@ if iperson.shirtcollect:
 
 		<div class="form-group row">
 			<div class="col-2"></div>
-			<label class="col-sm-2 col-form-label">Time</label>
-			<div class="col-sm-1">
+			<label class="col-sm-1 col-form-label">Time</label>
+			<div class="col-sm-2">
 				<input type="text" readonly class="form-control-plaintext" value="${session.time if session.time else ''}">
 			</div>
 			<label class="col-sm-2 col-form-label">Booked</label>

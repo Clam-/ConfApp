@@ -43,6 +43,11 @@
 % endif
 				<input type="hidden" name="room_orig" value="${item.room.id if item.room else ""}">
 			</div>
+			<label class="col-sm-1 col-form-label" for="formSTime">Time</label>
+			<div class="col-sm-2">
+				<input class="form-control" type="text" name="time" value="${item.time}" id="formSTime" ${'readonly="readonly"' if not admin else ""}>
+				<input type="hidden" name="time_orig" value="${item.time}">
+			</div>
 		</div>
 
 		<div class="form-group row">
