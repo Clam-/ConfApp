@@ -8,8 +8,9 @@ from unicodecsv import reader
 from io import open as iopen, TextIOWrapper, BufferedRandom
 from re import compile as recompile
 
-CODE = recompile("[A-Z][0-3][0-9]")
-CODE2 = recompile("FP[0-1][0-9]")
+CODE = recompile("([A-G][0-4][0-9])|(FP[0-1][0-9])")
+# A01 A03 D39 E40 FP01 FP10 F10 F01 Z01 A50
+# F1P0 FP30
 # Feature Presentations // Thursday 8:45 - 10:00am
 # Elective Session A // Thursday 10:45 - 12:15pm
 TIME = recompile("[0-9]:[0-5][0-9][ap]m")
@@ -63,6 +64,11 @@ CSV_HOST_RNGF = 18 # last col +1 for slicing.
 CSV_HAND_CODE = 0
 CSV_HAND_COPY = 3
 CSV_HAND_PRINT = 4
+CSV_FEATHOST_FNAME = 0
+CSV_FEATHOST_LNAME = 1
+CSV_FEATHOST_PHONE = 2
+CSV_FEATHOST_CODE = 3
+CSV_EXPRES_SHIRT = 4
 
 def read_csv(fname):
 	with open(fname, "rb") as f:

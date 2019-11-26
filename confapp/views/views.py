@@ -51,14 +51,15 @@ from confapp.models import (
 	Base,
 	)
 
-from ..libs.helpers import read_csv, convertfile, TIME, CODE, CODE2,\
+from ..libs.helpers import read_csv, convertfile, TIME, CODE,\
 	CSV_VENUE_CODE, CSV_VENUE_TITLE, CSV_VENUE_ADDR, CSV_VENUE_NAME, CSV_VENUE_LOC,\
 	CSV_VENUE_ROOM, CSV_VENUE_BUILDING, CSV_PEOPLE_FNAME, CSV_PEOPLE_LNAME,\
 	CSV_PEOPLE_ORG, CSV_PEOPLE_RNGS, CSV_PEOPLE_RNGF, CSV_PEOPLE_PHONE,\
 	CSV_PEOPLE_EMAIL, CSV_PEOPLE_ORGOTHER, CSV_PEOPLE_SHIRT, CSV_PEOPLE_SHIRTM,\
 	CODE_TIMEMAP, CSV_CAPS_CODE, CSV_CAPS_BOOKED, CSV_CAPS_MAX, CSV_HOST_FNAME,\
 	CSV_HOST_LNAME, CSV_HOST_EMAIL, CSV_HOST_PHONE, CSV_HOST_ORG, CSV_HOST_RNGS,\
-	CSV_HOST_RNGF, CSV_HAND_CODE, CSV_HAND_COPY, CSV_HAND_PRINT
+	CSV_HOST_RNGF, CSV_HAND_CODE, CSV_HAND_COPY, CSV_HAND_PRINT, CSV_FEATHOST_FNAME,\
+	CSV_FEATHOST_LNAME, CSV_FEATHOST_PHONE, CSV_FEATHOST_CODE, CSV_EXPRES_SHIRT
 
 from time import time
 from os import unlink
@@ -818,11 +819,11 @@ class AdminAdmin(BaseAdminView):
 		if row[CSV_VENUE_CODE].startswith("UNAVAILABLE "):
 			row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
 			cancelled = True
-		c = row[CSV_VENUE_CODE][0:3]
+		c = row[CSV_VENUE_CODE][0:4]
 		# match code format:
-		if not CODE.match(c):
-			c = row[CSV_VENUE_CODE][0:4]
-			if not CODE2.match(c): c = None
+		if CODE.match(c):
+			c = CODE.match(c).group()
+		else: c = None
 
 		if c and c not in self.sessions:
 			if not cancelled: room = self.processLocation(row)
@@ -855,11 +856,11 @@ class AdminAdmin(BaseAdminView):
 		if row[CSV_VENUE_CODE].startswith("UNAVAILABLE "):
 			row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
 			cancelled = True
-		c = row[CSV_VENUE_CODE][0:3]
+		c = row[CSV_VENUE_CODE][0:4]
 		# match code format:
-		if not CODE.match(c):
-			c = row[CSV_VENUE_CODE][0:4]
-			if not CODE2.match(c): c = None
+		if CODE.match(c):
+			c = CODE.match(c).group()
+		else: c = None
 
 		if c and c not in self.sessions:
 			if not cancelled: room = self.processLocationUpdate(row)
@@ -997,38 +998,29 @@ class AdminAdmin(BaseAdminView):
 		for x in row[CSV_PEOPLE_RNGS:CSV_PEOPLE_RNGF]:
 			# check for multiple sessions in a cell
 			x = x.strip()
-			if x and CODE.match(x[0:3]):
-				self.addPersonToSession(p, x[0:3])
-				i = x.find(",")
-				while i != -1:
-					if CODE.match(x[i+2:i+5]):
-						self.addPersonToSession(p, x[i+2:i+5])
-					i = x.find(",", i+1)
+			if x:
+				for match in CODE.findall(x):
+					self.addPersonToSession(p, match[0] if match[0] else match[1])
 		return True
 
 	def processPersonEx(self, row):
 		# Create or get Person
-		firstname = row[CSV_PEOPLE_FNAME].strip()
-		lastname = row[CSV_PEOPLE_LNAME].strip()
+		firstname = row[CSV_FEATHOST_FNAME].strip()
+		lastname = row[CSV_FEATHOST_LNAME].strip()
 		if not firstname or not lastname: return True
 
 		p = DBSession.query(Person).filter(Person.firstname == firstname, Person.lastname == lastname).first()
 		if not p:
-			phone = ""
-			for ph in CSV_PEOPLE_PHONE:
-				phone += "%s\n" % row[ph].strip()
-			org = row[CSV_PEOPLE_ORG].strip()
-			email = row[CSV_PEOPLE_EMAIL].strip()
-			p = Person(firstname=firstname, lastname=lastname, phone=phone, organisation=org,
-				email=email)
+			phone = row[CSV_FEATHOST_PHONE].strip()
+			#org = row[CSV_PEOPLE_ORG].strip()
+			#email = row[CSV_PEOPLE_EMAIL].strip()
+			shirt = True if row[CSV_EXPRES_SHIRT].strip() else False
+			p = Person(firstname=firstname, lastname=lastname, phone=phone, shirt=shirt)
 			DBSession.add(p)
 			DBSession.flush()
 		# Process their session
 		#self.addPersonToSession(p, row[0].strip())
-		for x in row[CSV_PEOPLE_RNGS:CSV_PEOPLE_RNGF]:
-			# check for multiple sessions in a cell
-			x = x.strip()
-			if x: self.addPersonToSession(p, x)
+		self.addPersonToSession(p, row[CSV_FEATHOST_CODE].strip())
 		return True
 
 	def processHost(self, row):
@@ -1052,30 +1044,23 @@ class AdminAdmin(BaseAdminView):
 		for x in row[CSV_HOST_RNGS:CSV_HOST_RNGF]:
 			x = x.strip()
 			if not x: continue
-			if CODE.match(x[0:3]):
-				self.addPersonToSession(p, x[0:3], PersonType.Host)
-			else:
-				print("BAD CODE FOR (%s, %s)" % (firstname, lastname))
-				self.request.session.flash("B")
+			for match in CODE.findall(x):
+				self.addPersonToSession(p, match[0] if match[0] else match[1], PersonType.Host)
 		return True
 
 	def processSingleHost(self, row):
 		# Create or get Person
-		name = row[1].strip()
-		if not name: return True
-		name = name.split(" ")
-
-		firstname = name[0].strip()
-		lastname = name[1].strip()
+		firstname = row[CSV_FEATHOST_FNAME].strip()
+		lastname = row[CSV_FEATHOST_LNAME].strip()
 		if not firstname or not lastname: return True
-		phone = row[3].strip()
+		phone = row[CSV_FEATHOST_PHONE].strip()
 		p = DBSession.query(Person).filter(Person.firstname == firstname, Person.lastname == lastname).first()
 		if not p:
 			p = Person(firstname=firstname, lastname=lastname, phone=phone)
 			DBSession.add(p)
 			DBSession.flush()
 		# Process their session
-		self.addPersonToSession(p, row[0].strip(), PersonType.host)
+		self.addPersonToSession(p, row[CSV_FEATHOST_CODE].strip(), PersonType.Host)
 		return True
 
 	def processHostPeopleBad(self, row):
@@ -1117,10 +1102,10 @@ class AdminAdmin(BaseAdminView):
 
 		# Process the session
 		session = row[0].strip()
-		c = session[0:3]
-		if not CODE.match(c):
-			c = session[0:4]
-			if not CODE2.match(c): c = None
+		c = session[0:4]
+		if CODE.match(c):
+			c = CODE.match(c).group()
+		else: c = None
 		if c:
 			s = DBSession.query(Session).filter(Session.code == c).one()
 			s.handouts_said = HandoutSaidType.ACHPER_Copy
@@ -1139,10 +1124,10 @@ class AdminAdmin(BaseAdminView):
 		if session.startswith("UNAVAILABLE"):
 			cancelled = True
 			session = session[11:].strip()
-		c = session[0:3]
-		if not CODE.match(c):
-			c = session[0:4]
-			if not CODE2.match(c): c = None
+		c = session[0:4]
+		if CODE.match(c):
+			c = CODE.match(c).group()
+		else: c = None
 		if not c and cancelled: self.request.session.flash("Cancelled non-session? {0}".format(row[0]))
 		if c:
 			day = "T" if c[0] in ("A", "B", "C") else "F"
@@ -1172,12 +1157,11 @@ class AdminAdmin(BaseAdminView):
 			if not DBSession.query(Association).filter(Association.person_id == p.id, Association.session_id == s.id).first():
 				DBSession.add(Association(person_id=p.id, session_id=s.id, type=t))
 			else:
-				#self.request.session.flash("Skipping duplicate session (%s) for (%s, %s)" % (code, p.firstname, p.lastname))
 				DBSession.delete(DBSession.query(Association).filter(Association.person_id == p.id, Association.session_id == s.id).first())
 				DBSession.flush()
 				DBSession.add(Association(person_id=p.id, session_id=s.id, type=t))
 				self.request.session.flash("{0}->{1}{2}".format(p.id, s.id, t.value))
-				#print("Skipping duplicate session (%s) for (%s, %s)" % (code, p.firstname, p.lastname))
+				print("ALREADY ASSOCIATION (%s) for (%s, %s)" % (code, p.firstname, p.lastname))
 		except NoResultFound:
 			self.request.session.flash("x{0}->{1}{2}".format(p.id, code, t.value))
 			print("\n\nCould not find Session: (%s)\n\n" % code)
