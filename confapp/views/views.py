@@ -1204,6 +1204,10 @@ class AdminAdmin(BaseAdminView):
 		)
 		return dict(header=header, rows=rows)
 
+	@view_config(route_name='test', renderer='test.mako', permission='admin')
+	def test(self):
+		return dict()
+
 class SplashView(BaseAdminView):
 	@view_config(route_name='admin_home', renderer='admin_home.mako', permission='splash')
 	def home(self):
