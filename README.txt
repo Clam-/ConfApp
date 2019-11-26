@@ -4,28 +4,40 @@ ConfApp README
 Getting Started
 ---------------
 
-- export VENV=~/env
+- Change directory into your newly created project.
 
-- cd <directory containing this file>
+    cd sailsimscore
 
-- $VENV/bin/python setup.py develop
+- Create a Python virtual environment.
 
-- $VENV/bin/initialize_ConfApp_db development.ini
+    python3 -m venv env
 
-- $VENV/bin/pserve development.ini
+- Upgrade packaging tools.
 
-- uwsgi --ini-paste development.ini
+    env/bin/pip install --upgrade pip setuptools
 
-Note to self
-------------
-git fetch --all
-git reset --hard origin/master
+- Install the project in editable mode with its testing requirements.
 
-to sync remote copies back to original
+    env/bin/pip install -e ".[testing]"
 
+- Initialize and upgrade the database using Alembic.
 
-Reset process:
---------------
-rm ConfApp.sqlite
-~/env/bin/initialize_ConfApp_db development.ini
-~/env/bin/uwsgi --ini-paste development.ini
+    - Generate your first revision.
+
+        env/bin/alembic -c development.ini revision --autogenerate -m "init"
+
+    - Upgrade to that revision.
+
+        env/bin/alembic -c development.ini upgrade head
+
+- Load default data into the database using a script.
+
+    env/bin/initialize_sailsimscore_db development.ini
+
+- Run your project's tests.
+
+    env/bin/pytest
+
+- Run your project.
+
+    env/bin/pserve development.ini
