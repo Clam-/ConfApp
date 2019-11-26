@@ -6,8 +6,6 @@ Getting Started
 
 - Change directory into your newly created project.
 
-    cd sailsimscore
-
 - Create a Python virtual environment.
 
     python3 -m venv env
@@ -20,6 +18,7 @@ Getting Started
 
     env/bin/pip install -e ".[testing]"
 
+TODO: this:
 - Initialize and upgrade the database using Alembic.
 
     - Generate your first revision.
@@ -32,11 +31,7 @@ Getting Started
 
 - Load default data into the database using a script.
 
-    env/bin/initialize_sailsimscore_db development.ini
-
-- Run your project's tests.
-
-    env/bin/pytest
+    env/bin/initialize_confapp_db development.ini
 
 - Run your project.
 
