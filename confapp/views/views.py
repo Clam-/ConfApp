@@ -828,6 +828,9 @@ class AdminAdmin(BaseAdminView):
 		if c and c not in self.sessions:
 			if not cancelled: room = self.processLocation(row)
 			else: room = None
+			if room == False:
+				room = None
+				cancelled = True
 			# Create session
 			if cancelled: title = "CANCELLED "+row[CSV_VENUE_TITLE]
 			else: title = row[CSV_VENUE_TITLE]
@@ -902,6 +905,7 @@ class AdminAdmin(BaseAdminView):
 		if location[CSV_VENUE_BUILDING].startswith("Monash Sport"):
 			building = 1
 			name = "Monash Sport"
+		elif: location[CSV_VENUE_BUILDING] == "CANCELLED": return False
 		else:
 			building = int(location[CSV_VENUE_BUILDING][-2:])
 			bname = location[CSV_VENUE_NAME].strip()
