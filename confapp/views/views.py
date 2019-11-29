@@ -294,7 +294,7 @@ class AdminListing(BaseAdminView):
 					if y.type == PersonType.Presenter: items.append(y)
 		page = DummyPage(items)
 		return dict(section=day.name, page=page, name="", code="", marker=self.request.params.get("marker"),
-			time=time(), helpers=self.request.registry.settings["helpers"] == "true")
+			time=time(), helpers=self.request.registry.settings["helpers"] == "true", unregistered=True)
 
 class AdminEdit(BaseAdminView):
 	@view_config(route_name='admin_day_edit_n', renderer='admin_day_edit.mako', permission='checkin')
