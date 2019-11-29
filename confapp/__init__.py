@@ -87,6 +87,7 @@ def main(global_config, **settings):
     config.add_route('admin_day_edit_n', '/{day}/{person}/{session}/name/{name}')
     config.add_route('admin_day_edit_nc', '/{day}/{person}/{session}/{code}/{name}')
     config.add_route('nopresenter', '/nopresenter')
+    config.add_route('unregistered', '/unregistered/{day}')
     config.add_route('test', '/test')
 
     config.scan()

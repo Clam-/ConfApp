@@ -15,6 +15,7 @@
 			<label class="sr-only col-form-label" for="formCode">Code</label>
 			<input class="col-1 form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code">
 			<button type="submit" class="col-1 btn btn-primary" name="form.submitted">Search</button>
+			<a class="col-1 btn btn-info ml-auto" href="${request.route_url('unregistered', day=day)}">Unregistered</a>
 		</div>
 	</form>
 	<table class="table table-sm">
