@@ -149,11 +149,11 @@ class AdminListing(BaseAdminView):
 				item.person.firstname,
 				item.person.lastname,
 				item.person.email.strip().replace("\n", ";") if item.person.email else "",
-				str(item.type.name),
+				item.type.name,
 				item.session.code,
 				item.session.title,
-				str(item.session.evaluations),
-				str(item.session.handouts),
+				item.session.evaluations.name,
+				item.session.handouts.name,
 				item.session.comments if item.session.comments else "",
 			)
 			for item in items
