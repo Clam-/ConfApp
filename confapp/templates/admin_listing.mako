@@ -6,16 +6,19 @@
 % endif
 <% day = section %>
 	<div class="header">
-		<h3>Registrations for ${day}</h3>
+		<h3>${"Un" if unregistered else "" }Registrations for ${day}</h3>
 	</div>
 	<form action="${request.route_url("admin_day_list", day=day)}" method="post">
+% if not unregistered:
 		<div class="form-group row">
 			<label class="sr-only col-form-label" for="formName">Search name</label>
 			<input class="col-3 form-control" id="formName" type="text" name="search.name" value="${name}" placeholder="Name" autofocus >
 			<label class="sr-only col-form-label" for="formCode">Code</label>
 			<input class="col-1 form-control" id="formCode" type="text" name="search.code" value="${code}" placeholder="Code">
 			<button type="submit" class="col-1 btn btn-primary" name="form.submitted">Search</button>
+			<a class="col-1 btn btn-info ml-auto" href="${request.route_url('unregistered', day=day)}">Unregistered</a>
 		</div>
+% endif
 	</form>
 	<table class="table table-sm">
 		<thead class="thead-light">

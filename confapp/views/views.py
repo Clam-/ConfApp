@@ -274,6 +274,27 @@ class AdminListing(BaseAdminView):
 	def admin_helper_update(self):
 		return dict(time=time(), items=DBSession.query(Helper).order_by(Helper.away, Helper.dispatched, Helper.firstname).all())
 
+	@view_config(route_name='unregistered', renderer='admin_listing.mako', permission='checkin')
+	def unregistered(self):
+		md = self.request.matchdict
+		day = md.get("day")
+		if not day:
+			self.error_redirect("Bad day.", "admin_home")
+		day = DayType[day]
+		#log.debug("\n\nSEARCHING: %s OR %s\n" % (name, code))
+		items = []
+		for x in DBSession.query(Session).filter(Session.cancelled == False).\
+			filter(Session.day == day).order_by(Session.code):
+			registered = False
+			for y in x.assoc:
+				if y.type == PersonType.Presenter and (y.registered or y.registered_sport):
+					registered = True
+			if not registered:
+				for y in x.assoc:
+					if y.type == PersonType.Presenter: items.append(y)
+		page = DummyPage(items)
+		return dict(section=day.name, page=page, name="", code="", marker=self.request.params.get("marker"),
+			time=time(), helpers=self.request.registry.settings["helpers"] == "true", unregistered=True)
 
 class AdminEdit(BaseAdminView):
 	@view_config(route_name='admin_day_edit_n', renderer='admin_day_edit.mako', permission='checkin')
@@ -1194,6 +1215,7 @@ class AdminAdmin(BaseAdminView):
 	@view_config(route_name='test', renderer='test.mako', permission='admin')
 	def test(self):
 		return dict()
+
 
 class SplashView(BaseAdminView):
 	@view_config(route_name='admin_home', renderer='admin_home.mako', permission='splash')
