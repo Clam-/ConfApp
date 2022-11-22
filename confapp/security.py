@@ -1,5 +1,3 @@
-from pyramid.security import unauthenticated_userid
-
 from confapp.models import User, UserRole
 
 def groupfinder(userid, request):
