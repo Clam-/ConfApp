@@ -9,6 +9,7 @@ from io import open as iopen, TextIOWrapper, BufferedRandom
 from re import compile as recompile
 
 CODE = recompile("([A-G][0-4][0-9])|(FP[0-1][0-9])")
+CODE_PREFIX = recompile("([A-F][0-4][0-9])|(FP[0-1][0-9]):")
 # A01 A03 D39 E40 FP01 FP10 F10 F01 Z01 A50
 # F1P0 FP30
 # Feature Presentations // Thursday 8:45 - 10:00am
@@ -16,65 +17,26 @@ CODE = recompile("([A-G][0-4][0-9])|(FP[0-1][0-9])")
 TIME = recompile("[0-9]:[0-5][0-9][ap]m")
 
 CODE_TIMEMAP = {
- "A" : "10:45 - 12:15pm",
- "B" : "1:15 - 2:45pm",
- "C" : "3:00 - 4:30pm",
- "D" : "8:45 - 10:15am",
- "E" : "11:45 - 1:15pm",
- "F" : "2:00 - 3:30pm",
- "FP01" : "8:45 - 10:00am",
- "FP02" : "8:45 - 10:00am",
- "FP03" : "8:45 - 10:00am",
- "FP04" : "8:45 - 10:00am",
- "FP05" : "8:45 - 10:00am",
- "FP06" : "10:45 - 11:45am",
- "FP07" : "10:45 - 11:45am",
- "FP08" : "10:45 - 11:45am",
- "FP09" : "10:45 - 11:45am",
- "FP10" : "10:45 - 11:45am",
+ "A" : ("Thursday", "10:45 - 12:15pm"),
+ "B" : ("Thursday", "1:15 - 2:45pm"),
+ "C" : ("Thursday", "3:00 - 4:30pm"),
+ "D" : ("Friday", "8:45 - 10:15am"),
+ "E" : ("Friday", "11:45 - 1:15pm"),
+ "F" : ("Friday", "2:00 - 3:30pm"),
+ "FP" : ("Thursday", "8:45 - 10:00am"),
 }
-
-CSV_VENUE_CODE = 0
-CSV_VENUE_TITLE = 1
-CSV_VENUE_ADDR = 4
-CSV_VENUE_BUILDING = 0
-CSV_VENUE_LOC = 2
-CSV_VENUE_ROOM = 2
-CSV_VENUE_NAME = 1
-CSV_PEOPLE_FNAME = 9
-CSV_PEOPLE_LNAME = 10
-CSV_PEOPLE_ORG = 14
-CSV_PEOPLE_ORGOTHER = 15
-CSV_PEOPLE_RNGS = 32
-CSV_PEOPLE_RNGF = 39 # last col +1 for slicing.
-CSV_PEOPLE_PHONE = (12, 13)
-CSV_PEOPLE_EMAIL = 11
-CSV_PEOPLE_SHIRT = 2
-CSV_PEOPLE_SHIRTM = ("Complimentary Speaker", "Complimentary Registration")
-CSV_CAPS_CODE = 0
-CSV_CAPS_BOOKED = 1
-CSV_CAPS_MAX = 2
-CSV_HOST_FNAME = 2
-CSV_HOST_LNAME = 3
-CSV_HOST_EMAIL = 4
-CSV_HOST_PHONE = (5,6)
-CSV_HOST_ORG = 7
-CSV_HOST_RNGS = 11
-CSV_HOST_RNGF = 18 # last col +1 for slicing.
-CSV_HAND_CODE = 0
-CSV_HAND_COPY = 3
-CSV_HAND_PRINT = 4
-CSV_FEATHOST_FNAME = 0
-CSV_FEATHOST_LNAME = 1
-CSV_FEATHOST_PHONE = 2
-CSV_FEATHOST_CODE = 3
-CSV_EXPRES_SHIRT = 4
+def returnTime(timelist, code):
+    longest = None
+    for timecode in timelist:
+        if code.startswith(timecode.prefix):
+            if longest is None or len(longest.prefix) < len(timecode.prefix):
+                longest = timecode
+    return longest
 
 def read_csv(fname):
 	with open(fname, "rb") as f:
 		for row in reader(f, encoding="utf-8"):
 			yield row
-
 
 def convertfile(fp):
 	f = NamedTemporaryFile(delete=False)

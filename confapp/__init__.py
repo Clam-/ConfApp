@@ -23,7 +23,7 @@ def main(global_config, **settings):
     Base.metadata.bind = engine
 
     authn_policy = AuthTktAuthenticationPolicy(
-    	settings["auth.secret"], callback=groupfinder, hashalg='sha512')
+        settings["auth.secret"], callback=groupfinder, hashalg='sha512')
     authz_policy = ACLAuthorizationPolicy()
 
     config = Configurator(settings=settings, root_factory='confapp.models.RootFactory')
@@ -66,6 +66,7 @@ def main(global_config, **settings):
     config.add_route('nuke', '/nuke')
     config.add_route('admin_admin', '/admin')
     config.add_route('upload', '/upload', request_method="POST")
+    config.add_route('settings', '/settings', request_method="POST")
 
     config.add_route('admin_room_new', '/location/edit/')
     config.add_route('admin_room_edit', '/location/edit/{id}')
@@ -81,6 +82,9 @@ def main(global_config, **settings):
     config.add_route('admin_day_search', '/{day}/search/{code}/{name}')
     config.add_route('admin_day_search_n', '/{day}/name/{name}')
     config.add_route('admin_day_search_c', '/{day}/code/{code}')
+
+    config.add_route('admin_timecode_delete', '/timecode/delete/{id}')
+    config.add_route('admin_timecode_new', '/timecode/new')
 
     config.add_route('admin_day_edit', '/{day}/{person}/{session}')
     config.add_route('admin_day_edit_c', '/{day}/{person}/{session}/code/{code}')

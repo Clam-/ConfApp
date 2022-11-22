@@ -20,8 +20,12 @@
 				<th> Building.room </th>
 				<th> Eq Out </th>
 				<th> Eq In </th>
+% if settings.handouts:
 				<th> <a href="${request.route_url("admin_session_list", _query={"sort":"handouts"})}">Handouts</a> </th>
+% endif
+% if settings.evals:
 				<th> Evaluations </th>
+% endif
 				<th> Other </th>
 				<th> Comment </th>
 			</tr>
@@ -43,15 +47,21 @@
 		<tr class="${rowstyle}">
 			<td><a href="${surl}" class="linkcell">${item.code}</a></td>
 			<td><a href="${surl}" class="linkcell">${"<s>" if item.cancelled else "" | n}${item.title}${"</s>" if item.cancelled else "" | n}</a></td>
-% if item.room:
+% if item.room and item.room.building:
 			<td><a href="${surl}" class="linkcell"><strong>${item.room.building.number}</strong>.${item.room.name}</a></td>
+% elif item.room:
+			<td><a href="${surl}" class="linkcell"><strong></strong>.${item.room.name}</a></td>
 % else:
 			<td><a href="${surl}" class="linkcell"><strong></strong>.</a></td>
 % endif
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${surl}" class="linkcell">${item.equip_returned}</a></td>
+% if settings.handouts:
 			<td><a href="${surl}" class="linkcell">${item.handouts.name}</a></td>
+% endif
+% if settings.evals:
 			<td><a href="${surl}" class="linkcell">${item.evaluations.name}</a></td>
+% endif
 			<td><a href="${surl}" class="linkcell">${item.other}</a></td>
 			<td><a href="${surl}" class="linkcell">${item.comments}</a></td>
 		</tr>

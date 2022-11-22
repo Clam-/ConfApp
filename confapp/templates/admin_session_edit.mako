@@ -37,7 +37,8 @@
 			<label class="col-sm-1 col-form-label" for="formRoom">Room</label>
 			<div class="col-sm-4">
 % if admin:
-				${self.selectidlist("room", rooms, ("building", "name"), "Select Room", item.room.id, _class="form-control", _id="formRoom")}
+				${self.selectidlist("room", rooms, ("building", "name"), "Select Room", item.room.id if item.room else '', _class="form-control", _id="formRoom")}
+				${self.selectclslist("type", item.sessiontype, self.attr.SessionType, _class="form-control", _id="formType")}
 % else:
 				<input class="form-control" type="text" name="room" value="${item.room.name if item.room else ""}" id="formRoom" readonly>
 % endif
@@ -49,20 +50,24 @@
 				<input type="hidden" name="time_orig" value="${item.time}">
 			</div>
 		</div>
-
+% if not settings.evals and not settings.handouts:
 		<div class="form-group row">
+% if settings.handouts:
 			<label class="col-sm-2 col-form-label" for="formHandouts">Handouts (Said: ${item.handouts_said.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("handouts", item.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
 				<input type="hidden" name="handouts_orig" value="${item.handouts.value}">
 			</div>
+% endif
+% if settings.evals:
 			<label class="col-sm-2 col-form-label" for="formEval">Evaluations (${item.evaluations.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("evaluations", item.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
 				<input type="hidden" name="evaluations_orig" value="${item.evaluations.value}">
 			</div>
 		</div>
-
+% endif
+% endif
 		<div class="form-group row">
 			<label class="col-sm-2 col-form-label" for="formEquipmentBorrowed">Equipment borrowed</label>
 			<div class="col-sm-3">

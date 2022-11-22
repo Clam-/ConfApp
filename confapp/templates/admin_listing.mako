@@ -1,7 +1,8 @@
 <%inherit file="admin-base.mako"/>
-<!-- <script type="text/javascript" src="/files/js/sidebar.js"></script> -->
+<%page args="mainen, sporten, admin"/>\
 <div class="container-fluid">
-% if logged_in == "main" and helpers:
+% if mainen and settings.helpers:
+<script type="text/javascript" src="/files/js/sidebar.js"></script>
 <div class="col-sm-10">
 % endif
 <% day = section %>
@@ -42,8 +43,12 @@
 				<th>Session title</th>
 				<th><abbr title="Building">Bld</abbr>.Room</th>
 				<th colspan="2"><abbr title="Equipment Out/In">Eq O/I</abbr></th>
+% if settings.handouts:
 				<th>Handouts</th>
+% endif
+% if settings.evals:
 				<th><abbr title="Evaluation forms">Evals</abbr></th>
+% endif
 				<th>Other</th>
 				<th>Comment</th>
 			</tr>
@@ -131,7 +136,7 @@ sport = False
 	</table>
 	<p>Page: ${page.pager() |n}</p>
 </div>
-% if logged_in == "main" and helpers:
+% if mainen and settings.helpers:
 <div id="sidebar" class="col-xs-2">
 	<h3><a href="${request.route_url("admin_helper_list")}">Helpers</a> <a href="#" >&#8635;</a></h3>
 	<table class="table">
