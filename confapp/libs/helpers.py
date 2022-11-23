@@ -9,7 +9,7 @@ from io import open as iopen, TextIOWrapper, BufferedRandom
 from re import compile as recompile
 
 CODE = recompile("([A-G][0-4][0-9])|(FP[0-1][0-9])")
-CODE_PREFIX = recompile("([A-F][0-4][0-9])|(FP[0-1][0-9]):")
+CODE_PREFIX = recompile("([A-F][0-4][0-9]):|(FP[0-1][0-9]):")
 # A01 A03 D39 E40 FP01 FP10 F10 F01 Z01 A50
 # F1P0 FP30
 # Feature Presentations // Thursday 8:45 - 10:00am
@@ -17,13 +17,14 @@ CODE_PREFIX = recompile("([A-F][0-4][0-9])|(FP[0-1][0-9]):")
 TIME = recompile("[0-9]:[0-5][0-9][ap]m")
 
 CODE_TIMEMAP = {
- "A" : ("Thursday", "10:45 - 12:15pm"),
- "B" : ("Thursday", "1:15 - 2:45pm"),
- "C" : ("Thursday", "3:00 - 4:30pm"),
- "D" : ("Friday", "8:45 - 10:15am"),
- "E" : ("Friday", "11:45 - 1:15pm"),
- "F" : ("Friday", "2:00 - 3:30pm"),
- "FP" : ("Thursday", "8:45 - 10:00am"),
+ "A" : ("Thursday", "10:50 - 11:50AM"),
+ "B" : ("Thursday", "1:10 - 2:10PM"),
+ "C" : ("Thursday", "2:20 - 3:20PM"),
+ "D" : ("Friday", "9:00 - 10:00AM"),
+ "E" : ("Friday", "10:50 - 11:50PM"),
+ "F" : ("Friday", "1:10 - 2:10PM"),
+ "FP" : ("Thursday", "9:00 - 10:00am"),
+ "FP06" : ("Thursday", "8:45 - 10:00am"),
 }
 def returnTime(timelist, code):
     longest = None

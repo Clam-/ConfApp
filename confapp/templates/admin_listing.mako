@@ -56,7 +56,6 @@
 <%
 count = 0
 items = page.items
-sport = False
 %>
 % for item in items:
 	<%
@@ -65,9 +64,6 @@ sport = False
 
 		session_id = session.id
 		person_id = person.id
-
-		if session.room and (session.room.building.number == "1") or session.room.building.number == "23": sport = True # or session.room.building.number == "60"
-		else: sport = False
 
 		if marker == "%s-%s" % (session_id, person_id):
 			rowstyle = "row-marker"
@@ -93,33 +89,37 @@ sport = False
 		other = session.other
 		title = session.title
 
-		if sport:
+		if session.sport:
 			sporttick = u"\u2714" if item.registered_sport else u"\u2717"
 		else:
 			sporttick = "-"
 	%>
 		<tr class="${rowstyle}">
 			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered else "text-muted"}">${u"\u2714" if item.registered else u"\u2717"}</a></td>
-% if sport:
+% if session.sport:
 			<td><a href="${uurl}" class="linkcell ${"text-success" if item.registered_sport else "text-muted"}">${sporttick}</a></td>
 % else:
 			<td><a href="${uurl}" class="linkcell text-muted"></a></td>
 % endif
-			<td><a href="${uurl}" class="linkcell">${person.lastname}</a></td>
+			<td><a href="${uurl}" class="linkcell"><abbr title="${person.phone}">${person.lastname}</abbr></a></td>
 			<td><a href="${uurl}" class="linkcell">${person.firstname}</a></td>
 			<td><a href="${uurl}" class="linkcell">${item.type.name}</a></td>
 
 			<td class="code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
 			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
 % if room:
-			<td><a href="${uurl}" class="linkcell"><strong>${room.building.number}.</strong>${room.name}</a></td>
+			<td><a href="${uurl}" class="linkcell"><strong><abbr title="${room.building.name}">${room.building.number}</abbr>.</strong>${room.name}</a></td>
 % else:
 			<td><a href="${uurl}" class="linkcell"><strong>Oops.</strong><abbr title=""></abbr></a></td>
 % endif
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equipment}</a></td>
 			<td class="${equipstyle}"><a href="${uurl}" class="linkcell">${session.equip_returned}</a></td>
+% if settings.handouts:
 			<td><a href="${uurl}" class="linkcell">${session.handouts.name}</a></td>
+% endif
+% if settings.evals:
 			<td><a href="${uurl}" class="linkcell">${session.evaluations.name}</a></td>
+% endif
 % if other and len(other) > 5:
 			<td><a href="${uurl}" class="linkcell"><abbr title="${other}">${other[:5]}</abbr></a></td>
 % else:

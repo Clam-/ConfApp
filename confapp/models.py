@@ -163,6 +163,7 @@ class Person(Base):
     lastname = Column(Unicode(100))
     firstname = Column(Unicode(100))
     organisation = Column(Unicode)
+    regid = Column(Integer, unique=True, nullable=True)
 
     phone = Column(Unicode(100))
     email = Column(Unicode(100))
@@ -195,14 +196,14 @@ class Association(Base):
     _repr_attrs = ["person_id", "session_id"]
 
 class TimeCode(Base):
-	prefix = Column(Unicode(10), index=True, unique=True, nullable=False)
-	time = Column(Unicode(20))
-	day = Column(Enum(DayType), nullable=False, name="day")
+    prefix = Column(Unicode(10), index=True, unique=True, nullable=False)
+    time = Column(Unicode(20))
+    day = Column(Enum(DayType), nullable=False, name="day")
 
 class Session(Base):
     code = Column(Unicode(10), index=True, unique=True, nullable=True)
     cancelled = Column(Boolean, index=True)
-    title = Column(Unicode(100))
+    title = Column(Unicode(300))
     time = Column(Unicode(20))
 
     submissionID = Column(Integer)

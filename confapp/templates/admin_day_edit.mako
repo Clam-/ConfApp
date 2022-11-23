@@ -150,7 +150,7 @@ if iperson.shirtcollect:
 %  endif
 							<td><span class="linkcell">${iperson.shirtsize}</a></td>
 % endif
-							<td><a href="${uurl}" class="linkcell">${iperson.lastname}</a></td>
+							<td><a href="${uurl}" class="linkcell"><abbr title="${iperson.phone}">${iperson.lastname}</abbr></a></td>
 							<td><a href="${uurl}" class="linkcell">${iperson.firstname}</a></td>
 							<td><a href="${uurl}" class="linkcell">${assoc.type.name}</a></td>
 						</tr>

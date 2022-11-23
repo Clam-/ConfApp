@@ -36,6 +36,13 @@ myWorker.onmessage = function(ev) {
 }
 CSVFILE = null;
 
+function autoSelectRules(data) {
+  data = data.toLowerCase();
+  if (data.includes("school") || data.includes("college") || data.includes("grammar")) { return true; }
+  else if (data.endsWith(" ps")) { return true; }
+  return false;
+}
+
 function getValues(nameid) {
   return (event) => {
     workerMaker('getValues', [CSVFILE, event.target.value, nameid]);
@@ -45,14 +52,20 @@ function gotValues(data) {
   //data is actually a Set and nameid list :
   var options = data[0];
   var nameid = data[1]
-  jQuery('#csvfields2 li').remove();
   var listelem = jQuery("#csvfields2");
   for (var i of nameid) {
+    // delete select if exists
+    listelem.children("li").children("select#"+i[1])
     // create select list item
     var s = jQuery("<select id='{0}' name='{0}' multiple></select>".format(i[1]));
     s.append(jQuery("<option></option>").attr("value", "").text("(NONE)"));
-    for (const [index, h] of options) {
-      s.append(jQuery("<option></option>").attr("value", index).text(h));
+    for (const opt of options) {
+      if ((i[1] == "shirtopts" && autoSelectRules(opt)) ||
+          (i[1] == "sports" && opt == "SP"))  {
+        // lol auto select anything with "school", "college",
+        // also auto select sports building
+        s.append(jQuery("<option></option>").attr("value", opt).attr("selected","selected").text(opt));
+      } else { s.append(jQuery("<option></option>").attr("value", opt).text(opt)); }
     }
     listelem.append(jQuery("<li></li>").append(jQuery("<span>{0}</span>".format(i[0])).add(s)));
   }
@@ -76,8 +89,13 @@ function handleFilesDone(data) {
       ["Room:", "room"], ["Title:", "title"],
       ["Session Type:", "sessiontype"], ["Number of registered", "numreg"], ["Capacity", "capacity"]]
   } else if (type == "people") {
-    fields = [["Code:", "code"], ["First Name:", "firstname"], ["Last Name:", "lastname"],
-      ["Email:", "email"], ["Phone:", "phone"], ["Organisation:", "org"], ["Shirt Qualifier", "shirt"]]
+    fields = [["Code:", "sessioncode"], ["First Name:", "firstname"], ["Last Name:", "lastname"], ["Reg ID:", "regid"],
+      ["Email:", "email"], ["Phone:", "phone"], ["Organisation:", "org"], ["Shirt Qualifier", "shirt"],
+      ["What is a presenter?:", "presqual"]]
+  } else if (type == "hosts") {
+    fields = [["Code:", "sessioncode"], ["First Name:", "firstname"], ["Last Name:", "lastname"], ["Phone:", "phone"]]
+  } else if (type == "cancelled") {
+    fields = [["Code:", "code"], ["Building No.:", "buildnum"], ["Building Name:", "buildname"], ["Venue:", "room"]]
   }
   var headers = data;
   jQuery('#csvfields li').remove();
@@ -86,14 +104,15 @@ function handleFilesDone(data) {
   for (var i of fields) {
     // create select list item
     var s = null;
-    if (["session", "phone"].includes(i[1])) { s = jQuery("<select id='{0}' multiple></select>".format(i[1])); }
+    if (["sessioncode", "phone", "presqual"].includes(i[1])) { s = jQuery("<select id='{0}'  name='{0}' multiple></select>".format(i[1])); }
     else { s = jQuery("<select id='{0}' name='{0}'></select>".format(i[1])); }
     s.append(jQuery("<option></option>").attr("value", "").text("(NONE)"));
     for (const [index, h] of headers.entries()) {
       s.append(jQuery("<option></option>").attr("value", index).text(h));
     }
-    if (i[1] == "building") { s.change(getValues([["Sports Building(s):", "sports"]])); }
-    if (i[1] == "shirt") { s.change(getValues([["Valid shirt options:", "shirtopts"]])); }
+    if (i[1] == "buildnum") { s.change(getValues([["Sports Building(s):", "sports"]])); }
+    else if (i[1] == "shirt") { s.change(getValues([["Valid shirt options:", "shirtopts"]])); }
+    else if (i[1] == "presqual") { s.change(getValues([["Valid presenter options:", "presopts"]])); }
 
     listelem.append(jQuery("<li></li>").append(jQuery("<span>{0}</span>".format(i[0])).add(s)));
   }

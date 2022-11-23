@@ -38,8 +38,8 @@ function getValues(f, column, nameid) {
   Papa.parse(f, {
     "header": false,
     "step": function(r,p) {
-      if (doneheader == true) { return; }
-      doneheader = true;
+      if (doneheader != true) { doneheader = true; return; }
+      if (r["data"].length <= 1) { return; }
       var opt = r["data"][column].trim();
       if (opt) {
         possibleoptions.add(opt);
@@ -60,7 +60,7 @@ function getHeaders(f) {
     "step": function(r,p) {
       var headers = []
       for (const h of r["data"]) {
-        headers.push(h)
+        headers.push(h.trim())
       }
       sendHeaders(rows, headers);
       p.abort();

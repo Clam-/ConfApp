@@ -788,7 +788,7 @@ class AdminAdmin(BaseAdminView):
                         abort()
                         request.session.flash("Failure from processShirt")
                         return HTTPFound(location = request.route_url('admin_admin'))
-                elif t == "hosts1":
+                elif t == "hosts":
                     if not self.processHost(row):
                         abort()
                         request.session.flash("Failure from processHost")
@@ -817,14 +817,14 @@ class AdminAdmin(BaseAdminView):
         cancelled = False
         params = self.request.params
         codecol = int(params.get("code"))
-        titlecol = int(params.get("title"))
+        titlecol = int(params.get("title")) if params.get("title", None) is not None else None
         sessiontypecol = params.get("sessiontype")
         numregcol = params.get("numreg")
         capacitycol = params.get("capacity")
         buildnumcol = int(params.get("buildnum"))
         sportsopts = params.getall("sports")
-        print(params)
-        if not codecol or not titlecol:
+        #print(params)
+        if not codecol:
             self.request.session.flash("Code and title column not selected after CSV.")
             return False
 
@@ -836,8 +836,9 @@ class AdminAdmin(BaseAdminView):
             cancelled = True
         c = row[codecol][0:4]
         # match code format:
-        if CODE.match(c):
-            c = CODE.match(c).group()
+        m = CODE.match(c)
+        if m:
+            c = m.group()
         else: c = None
 
         if not cancelled: room = self.processLocation(row)
@@ -853,11 +854,14 @@ class AdminAdmin(BaseAdminView):
             session = DBSession.query(Session).filter(Session.code == c).first()
 
         # process title
-        title = row[titlecol]
-        match = CODE_PREFIX.match(title) # remove code if in title
-        if match:
-            title = title[match.span()[1]:]
-        if cancelled: title = "CANCELLED " + title
+        title = row[titlecol] if titlecol is not None else None
+        if title:
+            match = CODE_PREFIX.match(title) # remove code if in title
+            if match:
+                title = title[match.span()[1]:].strip()
+        if cancelled:
+            if title is not None: title = "CANCELLED " + title
+            elif session is not None: title = "CANCELLED " + session.title
         timecode = returnTime(DBSession.query(TimeCode).all(),c)
         day = timecode.day
         time = timecode.time
@@ -879,7 +883,7 @@ class AdminAdmin(BaseAdminView):
         session.room = room
         session.cancelled = cancelled
         session.day = day
-        session.title = title
+        if titlecol is not None: session.title = title
         session.time = time
         session.sport = sport
         return True
@@ -894,7 +898,7 @@ class AdminAdmin(BaseAdminView):
         buildno = row[buildnocol].strip()
         buildname = row[buildnamecol].strip()
         room = row[roomcol].strip()
-        if room == "CANCELLED":
+        if room == "CANCELLED" or room.startswith("CANCELLED"):
             return None
         r = None
         if room in self.rooms:
@@ -916,102 +920,103 @@ class AdminAdmin(BaseAdminView):
             DBSession.add(b)
             self.buildings[buildno] = b
         r.building = b
+        DBSession.add(b)
         DBSession.add(r)
         return r
 
-    def processSessionUpdate(self, row):
-        cancelled = False
-        if row[CSV_VENUE_CODE].startswith("UNAVAILABLE "):
-            row[CSV_VENUE_CODE] = row[CSV_VENUE_CODE][12:]
-            cancelled = True
-        c = row[CSV_VENUE_CODE][0:4]
-        # match code format:
-        if CODE.match(c):
-            c = CODE.match(c).group()
-        else: c = None
-
-        if c and c not in self.sessions:
-            if not cancelled: room = self.processLocationUpdate(row)
-            else: room = None
-            # Create session
-            if cancelled: title = "CANCELLED "+row[3][4:]
-            else: title = row[3][4:]
-            day = "T" if c[0] in ("A", "B", "C") else "F"
-            booked = int(row[5])
-            max = int(row[6])
-            s = DBSession.query(Session).filter(Session.code == c).one()
-            s.max = max
-            s.booked = booked
-            s.cancelled = cancelled
-            s.room = room
-            self.sessions[c] = s
-        return True
-
     def processCancellations(self, row):
-        c = row[0].strip()
-        print("\n\n\nCancelling: ", c)
+        # check if venue is CANCELLED
+        params = self.request.params
+        codecol = int(params.get("code"))
+        buildnocol = int(params.get("buildnum"))
+        buildnamecol = int(params.get("buildname"))
+        venuecol = int(params.get("venue"))
+        room = row[venuecol].strip()
+        cancelled = True if room.startswith("CANCELLED") else False
         if c:
             s = DBSession.query(Session).filter(Session.code == c).first()
-            if s: s.cancelled = True
-            else:
-                day = "T" if c[0] in ("A", "B", "C") else "F"
-                s = Session(code=c, title="Cancelled", sessiontype=SessionType.NA,
-                    day=DayType(day), evaluations=HandoutType.At_Desk,
-                    cancelled=True)
-                DBSession.add(s)
+            if s:
+                if cancelled: s.cancelled = True
+                else:
+                    r = processLocation(self, row)
+                    if r: s.room = r
+                # day = "T" if c[0] in ("A", "B", "C") else "F"
+                # s = Session(code=c, title="Cancelled", sessiontype=SessionType.NA,
+                #     day=DayType(day), evaluations=HandoutType.At_Desk,
+                #     cancelled=True)
+                # DBSession.add(s)
         return True;
-    def processShirt(self, row):
-        firstname = row[4]
-        lastname = row[5]
-        if firstname and lastname:
-            try:
-                p = DBSession.query(Person).filter(Person.firstname == firstname, Person.lastname == lastname).one()
-                p.shirt = True
-            except NoResultFound:
-                pass
-        return True
-
-    def processShirtPerson(self, p, row):
-        if row[CSV_PEOPLE_SHIRT].strip() in CSV_PEOPLE_SHIRTM:
-            p.shirt = True
-        return True
 
     def processPerson(self, row):
-        # CHECK IF PERSON PRESENTING
-        found = False
-        for x in row[CSV_PEOPLE_RNGS:CSV_PEOPLE_RNGF]:
-            if x.strip(): found = True
-        if not found: return True
+        # TODO: add check for data of presenter "type"
+        # TODO: make some of these options (int conversion will error if not there)
+        params = self.request.params
+        print(params)
+        codecols = [int(x) for x in params.getall("sessioncode")]
+        firstnamecol = int(params.get("firstname"))
+        lastnamecol = int(params.get("lastname"))
+        emailcol = int(params.get("email"))
+        regidcol = int(params.get("regid"))
+        phonecols = (int(x) for x in params.getall("phone"))
+        orgcol = int(params.get("org"))
+        shirtcol = int(params.get("shirt"))
+        shirtopts = params.getall("shirtopts")
 
-        # Create or get Person
-        firstname = row[CSV_PEOPLE_FNAME].strip()
-        lastname = row[CSV_PEOPLE_LNAME].strip()
-        email = row[CSV_PEOPLE_EMAIL].strip()
+        # presenter filter
+        presqualcol = int(params.get("presqual")) if params.get("presqual","") != "" else None
+        if presqualcol is not None:
+            presqualopts = params.getall("presopts")
+            if row[presqualcol] not in presqualopts: return True
+
+        #print(f"\n\nCODE: {codecols} \n\nREGID: {regidcol}\n")
+        # if not codecols or regidcol:
+        #     self.request.session.flash("Code and regid column not selected after CSV.")
+        #     return False
+        # Create or get Person | prefer using reg_id... TODO: add a fallback.
+
+        firstname = row[firstnamecol].strip()
+        lastname = row[lastnamecol].strip()
+        email = row[emailcol].strip()
+        phone = (row[x].strip() for x in phonecols)
+        org = row[orgcol].strip()
+        shirt = True if row[shirtcol].strip() in shirtopts else False
         p = None
-        if (firstname, lastname, email) in self.people:
-            p = self.people[(firstname, lastname, email)]
+        regid = row[regidcol].strip()
+        if regid in self.people:
+            p = self.people[regid]
         else:
-            phone = []
-            for ph in CSV_PEOPLE_PHONE:
-                if row[ph].strip(): phone.append(row[ph].strip())
-            org = row[CSV_PEOPLE_ORG].strip()
-            if org == "Other":
-                org = row[CSV_PEOPLE_ORGOTHER].strip()
+            # lookup in database
+            p = DBSession.query(Person).filter(Person.regid == regid).first()
+        if p is None:
+            # create
             p = Person(firstname=firstname, lastname=lastname, email=email,
-                phone="\n".join(phone), organisation=org)
-            self.people[(firstname, lastname, email)] = p
+                phone="\n".join(phone), organisation=org, regid=regid)
+            self.people[regid] = p
             DBSession.add(p)
             DBSession.flush()
-
-        # Process Shirt?
-        self.processShirtPerson(p, row)
-
-        for x in row[CSV_PEOPLE_RNGS:CSV_PEOPLE_RNGF]:
-            # check for multiple sessions in a cell
-            x = x.strip()
-            if x:
-                for match in CODE.findall(x):
-                    self.addPersonToSession(p, match[0] if match[0] else match[1])
+        p.shirt = shirt
+        p.firstname = firstname
+        p.lastname = lastname
+        p.email = email
+        p.phone = "\n".join(phone)
+        p.org = org
+        # process codes
+        for x in codecols:
+            sess = row[x].strip()
+            # extract the code from the start. If no code, attempt to search for title.
+            print(f"\nSESS: {sess}")
+            m = CODE.match(sess)
+            if m:
+                print("MATCHED")
+                c = m.group()
+                self.addPersonToSession(p, c)
+            else:
+                if not sess.startswith("CANCELLED"):
+                    print(f"ATTEMPTING TO SEARCH FOR: {sess}")
+                    s = DBSession.query(Session).filter(Session.title == sess).first()
+                    print(f"RESULT: {s}")
+                    if s:
+                        self.addPersonToSession(p, s.code)
         return True
 
     def processHost(self, row):
