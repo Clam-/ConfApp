@@ -297,7 +297,7 @@ class Session(Base):
 
 class Building(Base):
     name = Column(Unicode(50))
-    number = Column(Unicode(20))
+    number = Column(Unicode(20), unique=True)
     address = Column(Unicode(100))
 
     rooms = relationship("Room", backref="building", lazy='joined')

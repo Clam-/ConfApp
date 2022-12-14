@@ -52,21 +52,21 @@
 		</div>
 % if not settings.evals and not settings.handouts:
 		<div class="form-group row">
-% if settings.handouts:
+	% if settings.handouts:
 			<label class="col-sm-2 col-form-label" for="formHandouts">Handouts (Said: ${item.handouts_said.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("handouts", item.handouts, self.attr.HandoutType, _class="form-control", _id="formHandouts")}
 				<input type="hidden" name="handouts_orig" value="${item.handouts.value}">
 			</div>
-% endif
-% if settings.evals:
+	% endif
+	% if settings.evals:
 			<label class="col-sm-2 col-form-label" for="formEval">Evaluations (${item.evaluations.name})</label>
 			<div class="col-sm-3">
 				${self.selectclslist("evaluations", item.evaluations, self.attr.HandoutType, _class="form-control", _id="formEval")}
 				<input type="hidden" name="evaluations_orig" value="${item.evaluations.value}">
 			</div>
-		</div>
-% endif
+	% endif
+	</div>
 % endif
 		<div class="form-group row">
 			<label class="col-sm-2 col-form-label" for="formEquipmentBorrowed">Equipment borrowed</label>
@@ -165,7 +165,11 @@ uurl = request.route_url("admin_person_edit", id=person.id)
 			<div class="col-sm-2"></div>
 		</div>
 % if admin:
-		<button type="submit" class="btn btn-danger" name="form.remove">REMOVE Person(s) selected above &amp; Save</button>
+		<div class="row">
+			<div class="col-sm-2 ">
+				<button type="submit" class="btn btn-danger" name="form.remove">REMOVE Person(s) selected above &amp; Save</button>
+			</div>
+		</div>
 % endif
 	</form>
-</li>
+</div>

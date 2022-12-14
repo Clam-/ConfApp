@@ -106,7 +106,7 @@ items = page.items
 			<td><a href="${uurl}" class="linkcell">${item.type.name}</a></td>
 
 			<td class="code"><a href="${uurl}" class="linkcell">${session.code}</a></td>
-			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if len(title) > 24 else title}</a></td>
+			<td><a href="${uurl}" class="linkcell">${title[:24]+u"\u2026" if title and len(title) > 24 else title}</a></td>
 % if room:
 			<td><a href="${uurl}" class="linkcell"><strong><abbr title="${room.building.name}">${room.building.number}</abbr>.</strong>${room.name}</a></td>
 % else:

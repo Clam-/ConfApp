@@ -30,7 +30,7 @@
 					<option value="sessionlocs">Sessions, Locations and numbers (update/add new)</option>
 					<option value="people">Registration List (will update if Reg ID is used, otherwise add always)</option>
 					<option value="shirts">Shirt Qualifiers (update/add new people) (Not yet implemented)</option>
-					<option value="hosts1">Hosts</option>
+					<option value="hosts">Hosts</option>
 					<option value="handouts">Handouts (not yet implemented)</option>
 					<option value="cancelled">Cancelled/update venue sessions</option>
 				</select>

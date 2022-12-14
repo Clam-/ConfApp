@@ -424,7 +424,7 @@ class AdminEdit(BaseAdminView):
         else:
             helpers = None
         return dict(section=oday, item=item, person=person, session=session, assocs=assocs, name=name, code=code, helpers=helpers,
-            helpers_show=helpers_show)
+            helpers_show=helpers_show, settings=self.settings)
 
     @view_config(route_name='admin_session_new', renderer='admin_session_edit.mako', permission='checkin')
     @view_config(route_name='admin_session_edit', renderer='admin_session_edit.mako', permission='checkin')
@@ -548,10 +548,19 @@ class AdminEdit(BaseAdminView):
 
         if 'form.submitted' in params or 'form.remove' in params:
             DBSession.add(item)
-
+            bldno = params.get("buildingNo")
+            if bldno:
+                # get or create building id
+                building = DBSession.query(Building).filter(Building.number == bldno).first()
+                if not building:
+                    building = Building()
+                building = self.getItemOrCreate(Building, "buildingNo")
+                self.setAttrIfChanged(building, "buildingName")
+                self.setAttrIfChanged(item, "buildingAddr")
+                DBSession.add(building)
+                item.building = building
+            self.setAttrIfChanged(item, "room")
             self.setAttrIfChanged(item, "name")
-            self.setAttrIfChanged(item, "buildingName")
-            self.setAttrIfChanged(item, "buildingAddr")
 
             self.doFlush(item=item)
 
@@ -817,10 +826,13 @@ class AdminAdmin(BaseAdminView):
         cancelled = False
         params = self.request.params
         codecol = int(params.get("code"))
-        titlecol = int(params.get("title")) if params.get("title", None) is not None else None
+        print(params)
+        titlecol = params.get("title", '')
+        if titlecol != '':
+            titlecol = int(params.get("title"))
         sessiontypecol = params.get("sessiontype")
-        numregcol = params.get("numreg")
-        capacitycol = params.get("capacity")
+        numregcol = params.get("numreg", "")
+        capacitycol = params.get("capacity", "")
         buildnumcol = int(params.get("buildnum"))
         sportsopts = params.getall("sports")
         #print(params)
@@ -841,10 +853,14 @@ class AdminAdmin(BaseAdminView):
             c = m.group()
         else: c = None
 
+        sport = None
         if not cancelled: room = self.processLocation(row)
         else: room = None
         if room is None:
             cancelled = True
+        else:
+            if row[buildnumcol].strip() in sportsopts: sport = True
+            else: sport = False
 
         session = None
         if not c: return True # eject if non-code
@@ -854,7 +870,7 @@ class AdminAdmin(BaseAdminView):
             session = DBSession.query(Session).filter(Session.code == c).first()
 
         # process title
-        title = row[titlecol] if titlecol is not None else None
+        title = row[titlecol] if titlecol != "" else None
         if title:
             match = CODE_PREFIX.match(title) # remove code if in title
             if match:
@@ -865,9 +881,7 @@ class AdminAdmin(BaseAdminView):
         timecode = returnTime(DBSession.query(TimeCode).all(),c)
         day = timecode.day
         time = timecode.time
-        sport = False
-        if row[buildnumcol].strip() in sportsopts:
-            sport = True
+
         if session == None:
             # Create session
             session = Session(code=c, title=title, sessiontype=SessionType.NA,
@@ -876,16 +890,16 @@ class AdminAdmin(BaseAdminView):
             DBSession.add(session)
             self.sessions[c] = session
         # update values/set
-        if numregcol and row[int(numregcol)].strip():
+        if numregcol != "" and row[int(numregcol)].strip():
             session.booked = row[int(numregcol)].strip()
-        if capacitycol and row[int(capacitycol)].strip():
+        if capacitycol != "" and row[int(capacitycol)].strip():
             session.max = row[int(capacitycol)].strip()
         session.room = room
         session.cancelled = cancelled
         session.day = day
-        if titlecol is not None: session.title = title
+        if titlecol != "": session.title = title
         session.time = time
-        session.sport = sport
+        if sport is not None: session.sport = sport
         return True
     def processLocation(self, row):
         # Create room
@@ -951,12 +965,12 @@ class AdminAdmin(BaseAdminView):
         # TODO: add check for data of presenter "type"
         # TODO: make some of these options (int conversion will error if not there)
         params = self.request.params
-        print(params)
+        #print(params)
         codecols = [int(x) for x in params.getall("sessioncode")]
         firstnamecol = int(params.get("firstname"))
         lastnamecol = int(params.get("lastname"))
         emailcol = int(params.get("email"))
-        regidcol = int(params.get("regid"))
+        #regidcol = int(params.get("regid"))
         phonecols = (int(x) for x in params.getall("phone"))
         orgcol = int(params.get("org"))
         shirtcol = int(params.get("shirt"))
@@ -981,17 +995,19 @@ class AdminAdmin(BaseAdminView):
         org = row[orgcol].strip()
         shirt = True if row[shirtcol].strip() in shirtopts else False
         p = None
-        regid = row[regidcol].strip()
-        if regid in self.people:
-            p = self.people[regid]
+        #regid = row[regidcol].strip()
+        key = (firstname, lastname, email)
+        if key in self.people:
+            p = self.people[key]
         else:
             # lookup in database
-            p = DBSession.query(Person).filter(Person.regid == regid).first()
+            p = DBSession.query(Person).filter(Person.firstname == firstname,
+                Person.lastname == lastname, Person.email == email).first()
         if p is None:
             # create
             p = Person(firstname=firstname, lastname=lastname, email=email,
-                phone="\n".join(phone), organisation=org, regid=regid)
-            self.people[regid] = p
+                phone="\n".join(phone), organisation=org)
+            self.people[key] = p
             DBSession.add(p)
             DBSession.flush()
         p.shirt = shirt
@@ -1021,27 +1037,44 @@ class AdminAdmin(BaseAdminView):
 
     def processHost(self, row):
         # Create or get Person
-        firstname = row[CSV_HOST_FNAME].strip()
-        lastname = row[CSV_HOST_LNAME].strip()
-        if not firstname or not lastname: return True
-
-        email = row[CSV_HOST_EMAIL].strip()
+        params = self.request.params
+        #print(params)
+        codecols = [int(x) for x in params.getall("sessioncode")]
+        firstnamecol = int(params.get("firstname"))
+        lastnamecol = int(params.get("lastname"))
+        emailcol = int(params.get("email"))
+        phonecol = int(params.get("phone"))
+        firstname = row[firstnamecol].strip()
+        if not firstname: return True
+        lastname = row[lastnamecol].strip()
+        if not lastname: return True
+        phonecols = (int(x) for x in params.getall("phone"))
+        phone = (row[x].strip() for x in phonecols)
+        email = row[emailcol].strip()
         p = DBSession.query(Person).filter(Person.firstname == firstname,
             Person.lastname == lastname, Person.email == email).first()
         if not p:
             phone = []
-            for ph in CSV_HOST_PHONE:
-                if row[ph].strip(): phone.append(row[ph].strip())
-            org = row[CSV_HOST_ORG].strip()
             p = Person(firstname=firstname, lastname=lastname, phone="\n".join(phone), email=email)
             DBSession.add(p)
             DBSession.flush()
-        # Process their session
-        for x in row[CSV_HOST_RNGS:CSV_HOST_RNGF]:
-            x = x.strip()
-            if not x: continue
-            for match in CODE.findall(x):
-                self.addPersonToSession(p, match[0] if match[0] else match[1], PersonType.Host)
+        # process codes
+        for x in codecols:
+            sess = row[x].strip()
+            # extract the code from the start. If no code, attempt to search for title.
+            print(f"\nSESS: {sess}")
+            m = CODE.match(sess)
+            if m:
+                print("MATCHED")
+                c = m.group()
+                self.addPersonToSession(p, c, PersonType.Host)
+            else:
+                if not sess.startswith("CANCELLED"):
+                    print(f"ATTEMPTING TO SEARCH FOR: {sess}")
+                    s = DBSession.query(Session).filter(Session.title == sess).first()
+                    print(f"RESULT: {s}")
+                    if s:
+                        self.addPersonToSession(p, s.code, PersonType.Host)
         return True
 
     def processHandouts(self, row):
