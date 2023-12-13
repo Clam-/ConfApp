@@ -33,6 +33,7 @@
 					<option value="hosts">Hosts</option>
 					<option value="handouts">Handouts (not yet implemented)</option>
 					<option value="cancelled">Cancelled/update venue sessions</option>
+					<option value="sessioncaps">Session numbers</option>
 				</select>
 			</div>
 			<div class="form-group row">

@@ -787,6 +787,11 @@ class AdminAdmin(BaseAdminView):
                         abort()
                         request.session.flash("Failure from processSession")
                         return HTTPFound(location = request.route_url('admin_admin'))
+                elif t == "sessioncaps":
+                    if not self.processSessionCaps(row):
+                        abort()
+                        request.session.flash("Failure from processCaps")
+                        return HTTPFound(location = request.route_url('admin_admin'))
                 elif t == "people":
                     if not self.processPerson(row):
                         abort()
@@ -818,7 +823,8 @@ class AdminAdmin(BaseAdminView):
             request.session.flash("Could not read (%s) correctly. Please upload as 'CSV UTF-8 (Comma Delimited) .csv'" % filename)
             unlink(input_file)
             abort()
-        unlink(input_file)
+        try: unlink(input_file)
+        except FileNotFoundError: pass
         commit()
         return HTTPFound(location = request.route_url('admin_admin'))
 
@@ -830,10 +836,12 @@ class AdminAdmin(BaseAdminView):
         titlecol = params.get("title", '')
         if titlecol != '':
             titlecol = int(params.get("title"))
-        sessiontypecol = params.get("sessiontype")
+        #sessiontypecol = params.get("sessiontype")
         numregcol = params.get("numreg", "")
         capacitycol = params.get("capacity", "")
-        buildnumcol = int(params.get("buildnum"))
+        buildnumcol = params.get("buildnum", "")
+        buildnumcol = int(buildnumcol) if buildnumcol else buildnumcol
+
         sportsopts = params.getall("sports")
         #print(params)
         if not codecol:
@@ -959,7 +967,7 @@ class AdminAdmin(BaseAdminView):
                 #     day=DayType(day), evaluations=HandoutType.At_Desk,
                 #     cancelled=True)
                 # DBSession.add(s)
-        return True;
+        return True
 
     def processPerson(self, row):
         # TODO: add check for data of presenter "type"
@@ -972,9 +980,14 @@ class AdminAdmin(BaseAdminView):
         emailcol = int(params.get("email"))
         #regidcol = int(params.get("regid"))
         phonecols = (int(x) for x in params.getall("phone"))
-        orgcol = int(params.get("org"))
-        shirtcol = int(params.get("shirt"))
-        shirtopts = params.getall("shirtopts")
+        orgcol = None
+        try: orgcol = int(params.get("org"))
+        except ValueError: pass
+        shirtcol = None
+        try: 
+            shirtcol = int(params.get("shirt"))
+            shirtopts = params.getall("shirtopts")
+        except ValueError: pass
 
         # presenter filter
         presqualcol = int(params.get("presqual")) if params.get("presqual","") != "" else None
@@ -1096,12 +1109,16 @@ class AdminAdmin(BaseAdminView):
             else:
                 s.handouts = HandoutType.NA
         return True
-
+    # 
     def processSessionCaps(self, row):
+        params = self.request.params
         # Skip non row
-        if not row[0].strip(): return True
+        session = params.get("title", '')
+        if session != '':
+            session = int(session)
+        if session == "": return True
         # Process the session
-        session = row[0].strip()
+        session = row[session]
         cancelled = False
         if session.startswith("UNAVAILABLE"):
             cancelled = True
@@ -1114,23 +1131,28 @@ class AdminAdmin(BaseAdminView):
         if c:
             day = "T" if c[0] in ("A", "B", "C") else "F"
             s = DBSession.query(Session).filter(Session.code == c).first()
+            if not s:
+                self.request.session.flash("404sess {0}?".format(c))
+                return True
             if s and cancelled:
                 self.request.session.flash("CANSESS {0}?".format(c))
                 s.cancelled = cancelled
             if not s and cancelled:
                 self.request.session.flash("AddCan {0}".format(c))
-                s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
-                    day=DayType(day), evaluations=HandoutType.NA,
-                    cancelled=cancelled)
-                DBSession.add(s)
+                # s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
+                #     day=DayType(day), evaluations=HandoutType.NA,
+                #     cancelled=cancelled)
+                # DBSession.add(s)
             if not s and not cancelled:
                 self.request.session.flash("NEW?? {0}".format(c))
-                s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
-                    day=DayType(day), evaluations=HandoutType.NA,
-                    cancelled=cancelled)
-                DBSession.add(s)
-            s.booked = int(row[CSV_CAPS_BOOKED] if row[CSV_CAPS_BOOKED] else 0)
-            s.max = int(row[CSV_CAPS_MAX] if row[CSV_CAPS_MAX] else 0)
+                # s = Session(code=c, title=session.split(":", 1)[1].strip(), sessiontype=SessionType.NA,
+                #     day=DayType(day), evaluations=HandoutType.NA,
+                #     cancelled=cancelled)
+                # DBSession.add(s)
+            numbers = params.get("numbers", '')
+            s.booked = int(numbers if numbers else 0)
+            # TODO: max
+            s.max = 0
         return True
 
     def addPersonToSession(self, p, code, t=PersonType.Presenter):

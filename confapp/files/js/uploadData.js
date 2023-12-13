@@ -38,7 +38,7 @@ CSVFILE = null;
 
 function autoSelectRules(data) {
   data = data.toLowerCase();
-  if (data.includes("school") || data.includes("college") || data.includes("grammar") || data.includes("university")) { return true; }
+  if (data.includes("school") || data.includes("college") || data.includes("grammar") ) { return true; }
   else if (data.endsWith(" ps")) { return true; }
   return false;
 }
@@ -97,6 +97,8 @@ function handleFilesDone(data) {
       , ["Email:", "email"]]
   } else if (type == "cancelled") {
     fields = [["Code:", "code"], ["Building No.:", "buildnum"], ["Building Name:", "buildname"], ["Venue:", "room"]]
+  } else if (type == "sessioncaps") {
+    fields = [["Title:", "title"], ["Numbers:", "numbers"]]
   }
   var headers = data;
   jQuery('#csvfields li').remove();

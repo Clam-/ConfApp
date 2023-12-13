@@ -8,8 +8,8 @@ from unicodecsv import reader
 from io import open as iopen, TextIOWrapper, BufferedRandom
 from re import compile as recompile
 
-CODE = recompile("([A-G][0-4][0-9])|(FP[0-1][0-9])")
-CODE_PREFIX = recompile("([A-F][0-4][0-9]):|(FP[0-1][0-9]):")
+CODE = recompile(r"([A-G]\.?[0-4][0-9])|(FP\.?[0-1]?[0-9])|(KEY)")
+CODE_PREFIX = recompile(r"([A-F]\.?[0-4][0-9]):?|(FP\.?[0-1][0-9]):?")
 # A01 A03 D39 E40 FP01 FP10 F10 F01 Z01 A50
 # F1P0 FP30
 # Feature Presentations // Thursday 8:45 - 10:00am
